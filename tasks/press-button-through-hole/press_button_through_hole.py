@@ -1,13 +1,13 @@
 """On the bench, in the middle: a machine's reset button on a vertical steel control panel, behind a
-clear polycarbonate guard 160 x 123 x 100 mm in a dark steel frame, closed on its sides and roof. The red button is lit, a 25 mm
-plunger standing 15 mm proud of the panel, 90 mm behind the guard, and it springs back out when
-nothing holds it in. The guard has one 34 mm square service port, level with the button and on its
+clear polycarbonate guard 200 x 166 x 100 mm in a dark steel frame, closed on its sides and roof. The red button is lit, a 34 mm
+plunger standing 18 mm proud of the panel, its face 130 mm behind the guard's front glazing, and it springs back out when
+nothing holds it in. The guard has one 40 mm square service port, level with the button and on its
 axis. The gripper does not fit through the port.
 
-A rack nearer the arms holds three bars, each lying along the bench away from the arms and level with
-the port: a 320 x 12 x 12 mm aluminium rod in the middle, a 120 x 25 x 4 mm wooden rule beyond it on
-the left, and a 320 x 45 x 45 mm oak baton on the right. Only the rod is both long enough to reach
-the button and thin enough to pass the port.
+A rack nearer the arms holds three bars, each lying along the bench away from the arms: a 280 mm
+aluminium reach rod (16 mm square shaft, 80 x 28 mm handle) on the left, its axis level with the port;
+a 140 x 30 x 5 mm oak rule beyond it on the left; and a 360 x 55 x 55 mm oak baton on the right. Only
+the rod is both long enough to reach the button and thin enough to pass the port.
 
 Score (task_score): 1.0 once the button has been held at least 5 mm in for a second by a bar lying
 through the port; otherwise the best the trial reached -- 0.5 if a bar's end got at least 50 mm inside
@@ -73,7 +73,7 @@ def _pressed(objects) -> bool:
 def _rod_in_port(objects) -> bool:
     """The rod lies through the port, far end deep inside, near end still outside.
 
-    The guarded volume is 105 mm deep and the rod is 320 mm long, so a rod that reaches the button
+    The guarded volume is 148 mm deep and the rod is 280 mm long, so a rod that reaches the button
     must be sticking out of the port. That is the geometry of a bar being held and pushed, which is
     what stops one being thrown in and abandoned.
     """

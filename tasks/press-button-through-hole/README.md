@@ -182,7 +182,12 @@ is exact.
 | button | a tinted, self-lit preview surface | — |
 
 These are NVIDIA's own materials, shipped with Isaac Sim and served from its public asset bucket;
-they are used by reference and none is redistributed here.
+they are used by reference and none is redistributed here. Licenses:
+
+| MDL | License |
+|---|---|
+| `vMaterials_2/Metal/Aluminum_Brushed.mdl` | NVIDIA's MDL Materials license, carried in the file's own header (free to use, copy and redistribute, modified or not, solely for use with NVIDIA's Material Definition Language; NVIDIA's copyright notice must be kept) |
+| `Base/Glass/Clear_Glass.mdl`, `Base/Wood/Oak.mdl`, `Base/Metals/Steel_Stainless.mdl`, `Base/Metals/Steel_Carbon.mdl` | Isaac Sim asset content pack: the NVIDIA Omniverse License Agreement, https://docs.omniverse.nvidia.com/install-guide/latest/common/NVIDIA_Omniverse_License_Agreement.html (as stated in Isaac Sim's `PACKAGE-LICENSES/isaac-sim-assets-LICENSE.txt`) |
 
 **Glazing had to be measured, not guessed.** A `PreviewSurfaceCfg` with a low `opacity` does not
 render as clear glass in this renderer — it renders as a milky sheet that hides what is behind it. Six

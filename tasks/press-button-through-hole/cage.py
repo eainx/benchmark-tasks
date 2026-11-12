@@ -10,19 +10,19 @@ Frame: x forward from the arms, y left, z up, metres; ``top`` is the bench surfa
 
 The layout, and why
 -------------------
-* **A vertical control panel carries the button.** The red reset button is a 25 mm plunger in a bore
+* **A vertical control panel carries the button.** The red reset button is a 34 mm plunger in a bore
   through a steel panel standing upright at the back of the guard, facing the arms, as a machine's
   reset sits on a vertical escutcheon. It is sprung, so it returns the moment nothing holds it in and
   a press has to be *held* to count.
 * **A vertical clear guard stands in front of it.** A polycarbonate screen with sides and a roof --
-  all clear, so the top camera sees the button through them -- and one 34 mm square service port on
+  all clear, so the top camera sees the button through them -- and one 40 mm square service port on
   the button's axis. The closed sides and roof are what stop the gripper reaching around.
 * **The port blocks the gripper.** With the fingers closed, the hand's cross-section grows from
-  27.4 mm at 25 mm behind the pad tips to 35.6 mm at 30 mm (measured off the URDF collision hulls by
-  ``check_reach.py``), so the port admits the closed fingertips about 25 mm and stops them -- the
-  same depth a 30 mm port would, because the hand's width jumps across both. The button face is
-  90 mm in, so no gripper pose can touch it. The extra 4 mm over 30 is lateral slop for the 12 mm
-  rod, which a gripper cannot centre to better than about a centimetre.
+  35.6 mm at 30 mm behind the pad tips to 40.1 mm at 35 mm (measured off the URDF collision hulls by
+  ``check_reach.py``), so the 40 mm port admits the closed fingertips about 30 mm and stops them.
+  The button face is 136 mm in from the port's outer face, so no gripper pose can touch it (100 mm of
+  margin). The port leaves 24 mm of clearance round the 16 mm rod, lateral slop for a bar a gripper
+  cannot centre to better than about a centimetre.
 * **The bars sit on a rack at the port's height.** Each bar rests across two posts whose tops put the
   rod's axis on the port's axis, so the job is one horizontal sweep: nothing is lifted up and set
   down, and the arm never passes over the guard.
