@@ -1,0 +1,20 @@
+{
+  "title": "Turn the rotary fittings of a coolant manifold so the supply reaches the machine",
+  "category": "Impact on jobs",
+  "keywords": [
+    "plant maintenance",
+    "coolant",
+    "pipe routing",
+    "puzzle",
+    "planning",
+    "bimanual"
+  ],
+  "instruction": "Get the coolant through to the machine.",
+  "context": "Coolant manifolds on machine lines are often built from rotary or union fittings that can be turned to re-route flow. After maintenance the fittings are left in the wrong positions and the machine gets no coolant. The fix needs a plan: read which fitting is which (straight, elbow, tee, cross), find a route around the panel from the supply to the outlet, and turn only what is needed. The instruction gives no route and no fitting names.",
+  "setup": "Panel (fixed) at (0.295, 0) carrying a 3 x 4 grid of rotary fittings at 95 mm pitch: rows at x 0.200 / 0.295 / 0.390, columns at y +0.1425 / +0.0475 / -0.0475 / -0.1425. Each fitting is an 88 mm dark disc on a damped vertical swivel (90 g) with a 26 mm galvanised pipe on it -- straight, elbow, tee or cross -- and an orange flat-sided T-handle (16 x 36 x 24 mm) on its hub. Coolant supply enters the middle row from the left (red valve wheel); the outlet line leaves the near row on the right. Five of the seven fittings on the only through route start turned wrong.",
+  "scoring": "From the measured fitting angles (a fitting counts only within 15 degrees of a quarter-turn position) coolant fills every fitting connected to the supply; filled fittings turn blue. 0.25 when 3 or more fittings are filled; 0.5 when coolant reaches the outlet; 0.75 when it reaches the outlet with no open end on any filled fitting (no leak). 1.0 adds both hands off the panel (more than 60 mm from every fitting, or 150 mm above it), held 1 s.",
+  "run_limit": "1,600 steps (80 seconds at 20 Hz)",
+  "fidelity": "PhysX rigid bodies at 240 Hz. Each fitting is a rigid body on a damped revolute joint; it is turned only by contact with the gripper. Coolant is not simulated: connectivity is computed from the measured angles and shown by revealing each filled fitting's blue pipe. Discs, pipes and handles are primitives.",
+  "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 642 steps.",
+  "media": "M-TWEPWT"
+}
