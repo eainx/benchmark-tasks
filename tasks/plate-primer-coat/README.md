@@ -7,9 +7,11 @@ block brush lying bristles-down.
 
 The instruction mentions neither the brush nor the tray. The brush has to be picked up and
 dipped in the primer before it puts anything on the plate, and wiped off on the tray's rim
-before it is carried out; a brush lifted straight out drips primer across the bench. One dip covers only about half the
-plate, so it has to be dipped again when it runs dry. The coat has to cover the whole plate,
-and then the brush is laid down.
+before it is carried out: a freshly dipped brush holds more than its bristles can keep, and
+carried out un-wiped it drips primer across the bench. On the plate, the bristle tips have to be
+pressed flat and drawn along it; a long stroke drains the tips faster than the body of the brush
+refills them, so its end goes on thin and see-through, and has to be gone over again. When the
+whole plate carries an opaque coat, the brush is laid down.
 
 ## Scene
 
@@ -17,34 +19,49 @@ and then the brush is laid down.
 |---|---|---|---|
 | steel plate | fixed rigid | 120 x 70 x 8 mm | centre (0.33, 0) |
 | primer tray | fixed rigid | 70 x 100 mm inside, 16 mm deep, primer 10 mm deep | (0.33, 0.175) |
-| block brush | rigid | 70 x 16 mm bristle head, 110 mm round wooden handle, 60 g | bristles-down at (0.22, 0.20) |
+| block brush | wooden stock + round handle (110 mm), 45 g | 70 x 16 mm head | bristles-down at (0.22, 0.20) |
+| bristle tufts | 14 tufts (2 x 7), each two 10 mm segments on spring hinges, 1.2 g each | 7 x 9 mm | set in the stock |
 
-## Primer model
+## Bristles
 
-Coat applied is computed only from the brush's measured pose:
-- **Loading:** bristle tips sunk at least 3 mm into the primer, brush within 30 degrees of upright, load the brush with 45 patches of coat. A drawn soaked band shows on the bristles while it carries any.
-- **Coating:** loaded tips flat on the plate's top (within 4 mm, tilt under 20 degrees) coat each 10 mm patch the bristle footprint passes over, one unit of load per new patch. A primer tile appears on the patch.
-- **Dripping:** a freshly dipped brush drips until its tips are drawn across the tray's far rim. Carried un-wiped outside the tray, it releases a 7 mm rigid primer drop at the tips every 4 control steps (0.2 s). Drops that come to rest outside the plate and tray count as drips.
+Each tuft is two rigid segments: the upper one hinged to the stock, the tip hinged to it, both
+about the brush's drawing axis with a spring (3e-4 N m/deg) and damping. Pressed on the plate and
+drawn, the tufts bend back and drag flat; lifted, they spring straight. The coat is laid where the
+**measured tip of each tuft** touches the plate, not from the brush's nominal footprint.
+
+## Primer model (by volume)
+
+Wet primer is not simulated as a fluid; it is a volume budget driven by the measured poses.
+- **Loading:** bristle tips sunk at least 3 mm into the primer (brush within 30 degrees of upright) load the brush with 6 ml, of which the bristles hold 3.5 ml; the tips are full (0.3 ml). The bristles show soaked while loaded.
+- **Dripping:** held up out of the primer, 60% of the excess over 3.5 ml runs off per second as 0.05 ml drops: small rigid spheres released at the lowest tuft tip. A drop that comes to rest is replaced by a flat 9 mm splat. Drops over the tray fall back in; drops resting off the plate and tray count as drips on the bench. Drawing the tips over the tray's far rim scrapes the excess back into the tray (load back to 3.5 ml).
+- **Coating:** the tips refill from the body of the brush at 0.12 ml/s. Each tuft tip within 2.5 mm of the plate's top lays, per control step, up to a quarter of a full coat (0.01 ml per cm², about 100 um wet) on the 10 mm patches under it, scaled by how full the tip is. A patch is drawn see-through, half or opaque as its film builds up; at 85% of a full coat it counts as coated.
+- **Smearing:** loaded tips down on the bench, off the plate and tray, count as primer on the bench.
+
+One dip with a wipe carries far more than the plate needs (3.5 ml against 0.84 ml); the limit on a
+stroke is how fast the tips are fed, not how much the brush holds.
 
 ## Scoring
 
-Coverage is the fraction of the plate's 84 patches that have primer on them.
+Coverage is the fraction of the plate's 84 patches with an opaque coat — what an inspector sees on
+the finished plate. In a real trial, photograph the plate from above through a 10 mm grid and count
+the patches with no steel showing through; count primer drops and smears on the bench off the plate
+and tray from the same photo or the overhead video.
 - 0.25 at 30% coverage.
 - 0.5 at 60%.
-- 0.75 at 95% with at most 1 drip on the bench and no primer brushed onto the bench (a loaded brush's tips flat on the bench, off the plate and tray).
-- 1.0 adds the brush then put down flat off the plate (in the tray or on the bench) and let go, held 1 s. A brush still carrying primer laid on the bench counts as primer on the bench.
+- 0.75 at 95% with at most 1 drip on the bench and no primer brushed onto the bench.
+- 1.0 adds the brush then put down flat off the plate (in the tray or on the bench) and let go, held 1 s. A brush still loaded laid on the bench counts as primer on the bench.
 
-Run limit: 1,600 control steps (80 s).
+Run limit: 1,200 control steps (60 s).
 
-In the scripted demo the left arm picks the brush up by its handle, dips it, and wipes it
-off across the tray's far rim. It draws the
-brush along the plate from the far edge toward itself; the brush runs dry about halfway.
-It dips and wipes again, makes a second stroke, and rests the wet brush in the tray.
+In the scripted demo (38 s) the left arm picks the brush up by its handle near the stock, dips
+it, and wipes it off across the tray's far rim. It presses the bristles down just inside the far
+edge of the plate and draws the brush toward itself along the plate; the end of the stroke goes on
+thin. A second, overlapping stroke tops up the thin patches, and the wet brush is rested in the tray.
 
 ## Approximations
 
-- Wet primer, flow and drying are not simulated. The coat is the pose-based model above.
-- The bristles are one rigid low-friction block.
+- Wet primer, flow, spreading and drying are not simulated: the coat, drips and soaking are the volume model above. Drops are rigid spheres that become drawn splats on landing.
+- Bristles are 28 rigid segments on spring hinges bending about one axis, not individual hairs.
 - Plate and tray are fixed.
 
 ## Reproduction

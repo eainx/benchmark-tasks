@@ -191,6 +191,16 @@ class Hinge:
     damping: float = 0.05      # N m s / rad
     lower_deg: float = -180.0
     upper_deg: float = 180.0
+    friction: float = 0.0      # PhysX joint friction: holds the angle where it is left against small loads
+    stiffness: float = 0.0     # N m / rad toward target_deg (0: no spring)
+    target_deg: float = 0.0
+    # Hinged to another task object instead of the world (a flap on a wall panel): that sibling's
+    # name and its spawn position (its spawn orientation must be identity).
+    parent: str | None = None
+    parent_pos: tuple[float, float, float] | None = None
+    # Joint frame orientation (w, x, y, z) in both bodies' spawn frames: ``axis`` is taken in this
+    # frame, so a hinge can turn about any direction, not only a world axis.
+    frame_rot: tuple[float, float, float, float] | None = None
 
 
 @dataclass(frozen=True)
@@ -722,14 +732,27 @@ def _add_hinge(prim, spec: Part) -> None:
     joint = UsdPhysics.RevoluteJoint.Define(prim.GetStage(), f"{prim.GetPath()}/hinge_joint")
     joint.CreateAxisAttr(h.axis)
     joint.CreateBody1Rel().SetTargets([Sdf.Path(str(prim.GetPath()))])
-    joint.CreateLocalPos0Attr(Gf.Vec3f(*(float(v) for v in h.pivot)))
+    if h.parent is not None:
+        joint.CreateBody0Rel().SetTargets([prim.GetPath().GetParentPath().AppendChild(h.parent)])
+        joint.CreateLocalPos0Attr(Gf.Vec3f(*(float(a) - float(b) for a, b in zip(h.pivot, h.parent_pos))))
+    else:
+        joint.CreateLocalPos0Attr(Gf.Vec3f(*(float(v) for v in h.pivot)))
     joint.CreateLocalPos1Attr(Gf.Vec3f(*(float(a) - float(b) for a, b in zip(h.pivot, spec.pos))))
-    joint.CreateLowerLimitAttr(float(h.lower_deg))
-    joint.CreateUpperLimitAttr(float(h.upper_deg))
+    if h.frame_rot is not None:
+        q = Gf.Quatf(*(float(v) for v in h.frame_rot))
+        joint.CreateLocalRot0Attr(q)
+        joint.CreateLocalRot1Attr(q)
+    if h.lower_deg > -1e5 or h.upper_deg < 1e5:      # beyond that: a free-spinning axle (a wheel)
+        joint.CreateLowerLimitAttr(float(h.lower_deg))
+        joint.CreateUpperLimitAttr(float(h.upper_deg))
     drive = UsdPhysics.DriveAPI.Apply(joint.GetPrim(), "angular")
     drive.CreateTypeAttr("force")
-    drive.CreateStiffnessAttr(0.0)
+    drive.CreateStiffnessAttr(float(h.stiffness))
+    drive.CreateTargetPositionAttr(float(h.target_deg))
     drive.CreateDampingAttr(float(h.damping))
+    if h.friction > 0:
+        from pxr import PhysxSchema
+        PhysxSchema.PhysxJointAPI.Apply(joint.GetPrim()).CreateJointFrictionAttr(float(h.friction))
 
 
 def _add_anchor(prim, spec: Part) -> None:

@@ -24,12 +24,15 @@ def main():
     problems += handle_bottom < rim + 0.002
     if not task.DIP_Z < P.TOP + P.TRAY_WALL + P.PRIMER_DEPTH - 0.003:
         print("DIP TOO SHALLOW"); problems += 1
-    # one stroke from the far edge to the near edge passes over every patch
+    # the two strokes, far edge to near edge, put the tuft tips over every patch
     seen = set()
-    for x in np.linspace(task.FAR_X, task.NEAR_X, 200):
-        seen.update(P.tiles_under([x, 0.0, task.STROKE_Z + P.BRISTLE_BLOCK[2] / 2, 0, 0, 0, 1]))
-    print(f"one stroke passes over {len(seen)}/{P.TILES} patches; one dip carries {P.LOAD}")
-    problems += len(seen) != P.TILES or P.LOAD >= P.TILES
+    tips = [P.tuft_xy(n) for n in P.TUFT_NAMES if n.endswith("b")]
+    for dy in (0.004, -0.004):
+        for x in np.linspace(task.FAR_X, task.NEAR_X, 200):
+            for tx, ty in tips:
+                seen.update(P.tiles_touched(np.array([x + tx, dy + ty, task.STROKE_Z])))
+    print(f"two strokes pass over {len(seen)}/{P.TILES} patches; one dip holds {P.HOLD_ML} ml after wiping, {P.HOLD_ML / P.ML_PER_TILE:.0f} patches")
+    problems += len(seen) != P.TILES
     for side, wps in task.demo().items():
         plan = ArmPlan(wps, station.BASES[side])
         t, bad = 0.0, {}

@@ -31,8 +31,8 @@ class TrialScorer:
         holding = [s for s in ("left", "right")
                    if float(np.linalg.norm(np.asarray(robot[s]["tcp"], float)[:3] - grip)) < PAD_TIP + 0.025
                    and float(np.mean(robot[s]["fingers"])) > -0.043]
-        _, _, tilt = P.bristle_tips(brush)
-        laid_down = (not holding and tilt < 15 and brush[2] < P.TOP + P.TRAY_WALL + P.BRISTLE_BLOCK[2] / 2 + 0.01
+        tips, _, tilt = P.bristle_tips(brush)
+        laid_down = (not holding and tilt < 15 and tips[2] < P.TOP + P.TRAY_WALL + 0.01
                      and not P.on_plate(brush[:3]) and float(np.linalg.norm(objects["brush"].lin_vel)) < 0.02)
         cov = float(mechanics["coverage"])
         score = 0.0
@@ -49,5 +49,5 @@ class TrialScorer:
         if full and self.held >= HOLD_S * HZ:
             score = 1.0
         return {"score": score, "success": score == 1.0, "coverage": cov, "dips": mechanics["dips"],
-                "brush_load": mechanics["load"], "drips": drips, "bench_smeared": smeared, "brush_in_hand": holding, "brush_laid_down": bool(laid_down),
+                "brush_load_ml": mechanics["load_ml"], "drips": drips, "bench_smeared": smeared, "brush_in_hand": holding, "brush_laid_down": bool(laid_down),
                 "held_frames": self.held}
