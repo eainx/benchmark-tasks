@@ -1,0 +1,20 @@
+{
+  "title": "Replace a chipped-out tile on a tiled step: back-butter the new tile with a notched trowel, turn it over and bed it level",
+  "category": "Impact on jobs",
+  "keywords": [
+    "tiling",
+    "back-buttering",
+    "notched trowel",
+    "tile repair",
+    "construction",
+    "tool use"
+  ],
+  "instruction": "Replace the missing tile on the step.",
+  "context": "Spot-repairing a cracked floor or step tile is routine work for general maintenance and repair workers (about 1.5 million in the US) and construction laborers, and one of the commonest household fixes. The gap left by the chipped-out tile is boxed in by its neighbours, so adhesive cannot be troweled onto the floor; it is combed onto the back of the new tile instead (back-buttering) while the other hand holds the tile still, to full coverage, or the tile sounds hollow and cracks. The tile is then turned over, set between the spacers level with its neighbours and pressed down to bed it.",
+  "setup": "Bench top (the floor) is z = 0. Raised step: concrete plinth 136 mm high, riser at x 0.304, spanning y -0.131 to 0.343 m, tiled four rows deep and three across with 75 x 150 x 8 mm glazed ceramic tiles (long sides along y, 2 mm joints with the spacers still in, 6 mm adhesive bed, face 150 mm up; the front row overhangs the riser by 22 mm). The middle tile of the front row has been chipped out and its old adhesive scraped off: a bare gap centred x 0.3195, y 0.106 m. On the floor in front, a cardboard sheet (150 x 210 mm, centred x 0.195, y 0.10) with five spare tiles stacked face-down on it at x 0.215, y 0.10, and the new tile (200 g) standing on a long edge in front of them, leaning back 15 degrees against the stack, glazed face toward the arms. Open tub of mixed grey tile adhesive (120 mm dia, 150 mm high) at x 0.24, y -0.20, a 6 mm square-notched trowel (70 x 140 mm blade, notched edge on the right, handle along x, 260 g) resting across its rim.",
+  "scoring": "Measured on the tile: 0.25 adhesive over at least half of its back. 0.5 over at least 80 % of its back (ANSI A108.5 minimum for dry interiors; real trial: photo of the back on a 12.5 mm grid before it is set). 0.75 also set face-up in the gap, centre within 3 mm, square within 3 degrees, lippage against the neighbours at most 1 mm (straightedge and feeler gauge). 1.0 also pressed down to bed it, the trowel let go of, both hands 8 cm clear, held 1 s. A tile set with under 80 % coverage caps the score at 0.5.",
+  "run_limit": "2,000 steps (100 seconds at 20 Hz)",
+  "fidelity": "PhysX 240 Hz. Adhesive is 72 cells of 12.5 mm on the tile's back, not a paste: a cell is buttered where the trowel's notched edge passes over it at 25-75 degrees to the back, within 6.5 mm of the layer's top, while the trowel carries adhesive (84 cells a load; dipping in the tub reloads). A hidden slab inset 25 mm stands for the layer's body, so the trowel rides on it and a set tile sits level. Bedding is a rule: a closed fingertip pressing the set tile 0.5 s. No squeeze-out or slump.",
+  "scores": "Dream-1 run: 0 after 561 steps (28.05 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 739 steps.",
+  "media": "M-N2J6PC"
+}
