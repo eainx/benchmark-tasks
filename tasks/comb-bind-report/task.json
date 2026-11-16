@@ -1,0 +1,23 @@
+{
+  "title": "Comb-bind a booklet: punch it upright in the binder's slot, open the comb with its lever, hang the pages on, close it",
+  "category": "Impact on jobs",
+  "keywords": [
+    "office",
+    "comb binding",
+    "binding machine",
+    "punch",
+    "comb opener",
+    "lever",
+    "bimanual",
+    "document finishing"
+  ],
+  "instruction": "Bind the booklet with the comb binder.",
+  "context": "Comb-binding reports, manuals and handouts is routine for office clerks (about 2.5 million in the US), administrative assistants and copy-shop staff. On a manual binder the pages stand in the punch slot against the side guide while the punch handle is pulled; the comb is laid spine down on the opener and spread by its lever, the punched pages are hung on the open rings, and the lever is let back so the rings close through the holes.",
+  "setup": "Desk top is z = 0 (bench at working height). Manual comb binder (upright-slot design, GBC CombBind C110 / Fellowes Star+ class), fixed: light-grey ABS case 400 W x 330 D x 120 H mm, charcoal top deck, front face at x 0.250 m spanning y -0.200 to 0.200; upright punch slot 6 mm wide and 15 mm deep across the deck at x 0.285 (y -0.150 to 0.150) with a printed scale; orange side guide (paper stop) with its face at y -0.120; margin-depth dial front left; comb opener behind the slot: 21 steel fingers at x 0.425 and a white page back plate 130 mm high at x 0.470; comb-size gauge back right; waste drawer at the front. Punch handle (right): steel lever 190 mm on a pivot at (0.470, -0.216, 0.085) m, resting 75 degrees up toward the arms on its stop, black rubber grip 85 mm along -y at its tip; pulled 50 degrees forward and down it punches. Comb-opener lever (left): steel lever 120 mm on a pivot at (0.480, 0.216, 0.095) m, resting just past upright, black knob; pulled 50 degrees forward it spreads the comb. Desktop upright file sorter (black steel mesh, 110 x 250 x 90 mm, three slots along x) at (0.175, 0.105). Booklet standing binding edge down in the sorter's middle slot at (0.175, 0.105): half-letter, 140 mm tall x 216 mm along its binding edge x 3.0 mm, 75 g, 15 sheets of 80 g/m2 paper between a clear 0.2 mm PVC front cover over a printed title page and a black 250 g/m2 card back cover, unpunched. Binding comb: 1/2 in (12.7 mm) black PVC comb cut to 15 rings on 14.3 mm pitch, 216 mm long, 12 g, lying spine down with its rings up along y at (0.205, -0.190). Box of 1/2 in combs (printed paperboard, 290 x 70 x 60 mm, lid open) at (0.335, -0.400).",
+  "scoring": "0.25: the booklet punched square: standing in the slot (binding edge within 2.5 mm of the slot floor and line, within 6 deg of upright and square) while the punch handle passes 95% of its stroke, with its right edge within 1.5 mm of the side guide. 0.5: and the comb laid on the opener (within 12 mm and 6 deg of its place, on the deck) and spread with the opener lever (past 90% of its stroke). 0.75: and the punched booklet hung on the spread rings (binding edge within 9 mm (x) and 3 mm (y) of the rings, resting within 8 mm above them, within 25 deg of upright (leaning on the back plate)). 1.0: and the comb closed with it hung (lever back within 10% of rest), booklet and comb at rest, every pad point of both hands 50 mm clear of them, for 1 s. Punched off the guide (holes off the comb's pitch): 0. Booklet dropped onto the desk: at most 0.25. Milestones latch. Real trial: check the holes are square to the binding edge and the comb closes through all 15.",
+  "run_limit": "2,400 control steps (120 seconds at 20 Hz)",
+  "reset_notes": "Fixed poses, no randomisation: booklet unpunched standing in the sorter, comb closed on the desk, both handles at rest.",
+  "fidelity": "PhysX 240 Hz. Booklet and comb are rigid (pages don't flex). Disclosed rules on measured poses: punched when the booklet stands seated in the slot and the punch handle passes 95% of its stroke (holes appear); the comb is held on the opener once laid there square and drawn spread while the opener lever is past 90%; hung when its binding edge rests over the spread rings; bound when the comb closes on it (joints switched on where they lie, no snap). Simple hidden colliders.",
+  "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 1015 steps.",
+  "media": "M-RA2GL8"
+}
