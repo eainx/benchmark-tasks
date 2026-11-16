@@ -1,0 +1,24 @@
+{
+  "title": "Replace a showerhead: hold the shower arm still while the old nut comes off, then run the new one up square",
+  "category": "Impact on jobs",
+  "keywords": [
+    "showerhead",
+    "shower arm",
+    "1/2-14 NPSM",
+    "swivel nut",
+    "drop-ear elbow",
+    "hold and turn",
+    "regrip strokes",
+    "bathroom repair",
+    "maintenance"
+  ],
+  "instruction": "Replace the showerhead with the new one.",
+  "context": "Swapping a showerhead is routine work for general maintenance and repair workers (about 1.5 million in the US), plumbers and hotel and apartment maintenance staff, and one of the commonest household fixes. The head's swivel nut runs on the shower arm's 1/2\"-14 NPSM thread; the arm itself is only taped into a drop-ear elbow behind the tiles, so a stuck nut turned without holding the arm turns the arm in the elbow and starts a leak inside the wall. One hand holds the arm while the other turns the nut off in strokes, the old head goes in the shower basket, not dropped, and the new head is started square, run up hand-tight on its conical washer.",
+  "setup": "Everything is real size; the bench top (z = 0.7475 m) is only the working height. Objects (type, size, material): (1) shower wall section, fixed: 410 x 300 x 30 mm cement board faced with white glazed 6 x 3 in (152 x 76 mm) ceramic subway tile, 3 mm grout joints; tiled face toward -y at y 0.14 m, x 0.21 to 0.62. (2) escutcheon, fixed: 64 mm diameter chrome-plated steel disc on the tile at x 0.42, 240 mm above the bench. (3) shower arm, turns about its own axis in a drop-ear elbow behind the tiles (damped, holds unless twisted): straight 1/2 in nominal chrome-plated brass pipe, 21.3 mm OD, 140 mm out of the wall along -y, male 1/2\"-14 NPSM thread at its end; 200 g. (4) old showerhead, on the arm's thread 4 turns on, set level: chrome-plated 32 mm knurled 1/2\"-14 NPSM swivel nut with conical rubber washer, ball joint, 76 mm face with limed rubber nozzles; 200 g. (5) shower basket, fixed: stainless steel wire, 260 x 110 x 55 mm, 4 mm wire on 20 mm centres, hung on the wall from x 0.21 to 0.47, floor 5 mm above the bench. (6) shower shelf, fixed: stainless steel, 140 x 110 x 6 mm on two brackets, x 0.225 to 0.365, top 192 mm above the bench, with a grey foam packaging cradle (two pads under the face, one under the nut). (7) new showerhead, free, lying in the cradle with its nut toward the wall and its axis level with the arm's at x 0.30: same part as (4), clean, its ball locked straight; nut and ball 60 g, face 130 g.",
+  "scoring": "0.25: the old head is off the thread (4 turns back) and lying still in the basket, no hand within 6 cm. 0.5: and the new head's nut is started on the thread square (nut centre within 3 mm of the arm's axis, its back face within 4 mm of the arm's end, axis within 6 degrees) and turned at least half a turn on. 0.75: and it is run up hand-tight (4 turns, seated on its washer) while the arm never turned more than 15 degrees in its elbow. 1.0: and both hands are at least 8 cm from the new head, held 1 s. An arm turned over 15 degrees caps the score at 0.5; any head dropped onto the bench outside the basket scores 0.",
+  "run_limit": "2600 control steps (130 simulated seconds at 20 Hz)",
+  "reset_notes": "Fixed poses, zero jitter: old head 4 turns on the arm, arm square in its elbow, new head in its cradle on the shelf.",
+  "fidelity": "PhysX 240 Hz. Threads are a rule: a nut on the arm is a hinge about its axis, switched on when put to the arm's end square and off after 4 turns back; travel along the thread is not modelled. Drag is a damping drive (the stuck old nut 5x the taped elbow's); a started nut left alone is held by heavier damping; seated (4 turns) it is damped stiff, so more torque turns the arm. The new head is rigid (ball locked). No water, washer or tape.",
+  "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 1930 steps.",
+  "media": "M-R4KC3S"
+}
