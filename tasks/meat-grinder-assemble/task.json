@@ -1,0 +1,24 @@
+{
+  "title": "Put a washed hand meat grinder back together: auger in, knife flat face out, plate notch on its key, ring screwed on",
+  "category": "Impact on jobs",
+  "keywords": [
+    "meat grinder",
+    "mincer",
+    "assembly order",
+    "part orientation",
+    "knife face",
+    "grinding plate",
+    "retaining ring",
+    "food preparation",
+    "bimanual"
+  ],
+  "instruction": "Assemble the meat grinder.",
+  "context": "Taking a meat grinder apart to wash it and putting it back together is routine for food preparation workers (about 900,000 in the US), cooks and butchers. The parts only fit one way: the auger goes in first, the cross knife onto its square with the flat cutting face toward the plate (backwards, it cannot cut), the plate over the auger's pin with its notch on the barrel's key, then the ring screwed on. The knife and plate only sit loose on the auger, so they must be pressed home before the ring is started and stay home while it is screwed on.",
+  "setup": "Bench (kitchen worktop) top is z = 0.7475 m; everything is real size. A #10 hand meat mincer (tinned cast iron, 54 mm plate size) stands fixed on its rubber suction foot (132 mm across, cam lever) centred at x 0.43, y 0.04 m: barrel bore 50 mm, 150 mm long to its back wall, axis level 115 mm above the bench along x, its mouth (front face) at x 0.34 facing the arms, with a 66 mm external thread 18 mm long, a 6 mm counterbore and a key (8 x 6 x 5 mm) at 12 o'clock; round hopper 112 mm across on top; crank (150 mm arm, beech handle) on the back. On a folded cotton tea towel (230 x 200 mm, off-white with blue and red border stripes) centred at x 0.285, y -0.185 lie: the auger (tinned cast iron, 174 mm long, 46 mm flights on a 26 mm core, 10 x 19 mm front square, 8 x 14 mm front pin, 11 mm rear square, 520 g) along x at x 0.28, y -0.112, pin end toward the arms; the four-wing cross knife (stainless, 48 mm across, 19 mm hub 10 mm thick with a 10 mm square hole, wings flush with its flat cutting face, 45 g) lying cutting face up, wings along x and y, at x 0.365, y -0.235; the grinding plate (stainless, 54 mm, 6 mm thick, 4.5 mm holes, 8.5 mm centre hole, 6 mm rim notch, 85 g) lying flat, its notch turned 55 degrees from +x toward +y, at x 0.29, y -0.24; the retaining ring (tinned cast iron, knurled 72 mm body with two lugs, 20 mm deep, 66 mm internal thread, 46 mm front opening, 190 g) standing lip up on its skirt, lugs along y, at x 0.205, y -0.235.",
+  "scoring": "0.25: the auger seated (its centre within 3.5 mm of its seat with the flights against the back wall, and of the barrel's axis). 0.5: and the knife on the auger's square with its flat cutting face out of the mouth (axis within 8 degrees). 0.75: and the plate on the pin with its notch on the key (within 8 degrees), put on after the knife. 1.0: and the ring started square on the thread and turned at least 1.5 turns, plate within 1 mm of flush and knife within 1 mm of home, all parts at rest (under 1 cm/s and 0.3 rad/s), then both hands' pads at least 8 cm from the ring for 1 s. The knife flat face in, or the plate put on before the knife, caps the score at 0.25; stages latch once reached.",
+  "run_limit": "2,400 control steps (120 seconds at 20 Hz)",
+  "reset_notes": "Fixed starting poses, no randomisation: mincer empty, parts on the towel as listed, arms at the ready pose.",
+  "fidelity": "PhysX 240 Hz; rigid parts collide through hidden simple shapes, drawn as meshes of the real parts. Fits are rules, joints switched on at tolerance (no position targets): knife and plate slide on the square/pin once put to it coaxially within 3 mm (notch within 8 deg of the key), held by a stiff damping drive once home; the ring is a damped hinge once square at the mouth, counting turns (no thread travel), tight at 1.5. Fitted parts ignore collisions with barrel and auger.",
+  "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 1992 steps.",
+  "media": "M-U648M4"
+}
