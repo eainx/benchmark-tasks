@@ -1,0 +1,23 @@
+{
+  "title": "Load a new tape cassette in a desktop label maker: open the cover, swap the used-up cassette, seat it one way, shut",
+  "category": "Impact on jobs",
+  "keywords": [
+    "office",
+    "label maker",
+    "tape cassette",
+    "consumable change",
+    "keyed orientation",
+    "hinged cover",
+    "steadying hand",
+    "bimanual"
+  ],
+  "instruction": "Put the new tape cassette in the label maker.",
+  "context": "Changing the tape cassette in a label maker is routine for office clerks (about 2.5 million in the US), shipping, receiving and stock clerks, and maintenance staff who label shelves, cables and panels. The cover's latch tab is pressed and the cover swung up, the used-up cassette lifted out, the new one dropped in the one way it fits (its tape end to the print head) and pressed down until it clicks, and the cover shut. The label maker (about 1 kg) slides on the desk, so the other hand steadies it.",
+  "setup": "Desk top is z = 0.7475 m; x away from the arm bases, y left. Desktop label maker (PT-D600-class thermal labeller for 3.5-24 mm laminated tape cassettes): 201 mm wide x 192 mm deep, 66 mm to its top deck and 88 mm to the top of its cassette hood, ABS shell (dark grey lower, light grey upper), 1.09 kg with six AA cells, free on four rubber feet; centred at x 0.426, y 0.05, its QWERTY keyboard (5 rows) toward the arms and a colour LCD and two round keys at its back left. Its cassette bay (70 x 92 mm, 8 mm deep in the deck, a 12 mm print head post in its +x -y corner) is at the back right under a hinged ABS hood cover (88 x 108 mm, 22 mm high, 35 g) hinged along its back bottom edge at x 0.518 and latched shut, with a push latch tab at the foot of its front edge (x 0.427) over a 30 x 44 x 12 mm finger recess in the deck. In the bay lies the used-up 24 mm tape cassette: 88 x 66 x 26 mm black ABS shell with a yellow label and a clear window over the tape and ink-ribbon spools, its +x -y corner cut away round the print head (the tape end there), 88 mm side along y, its top 18 mm above the deck, 22 g. The new, full cassette (same type, 32 g) lies face up on the desk at x 0.325, y 0.232, the same way round, beside its opened printed paperboard carton (105 x 68 x 29 mm, 14 g, top flap folded back) at x 0.33, y 0.345. A 24 x 90 mm label it printed lies on the desk at x 0.285, y -0.06.",
+  "scoring": "0.25: the cover has been swung open (past 80 degrees) and the old cassette has been set down on the desk, at least 60 mm from the bay (its middle under 30 mm up, still: under 0.01 m/s and 0.2 rad/s; once done this stays). 0.5: and the new cassette is clicked into its seat (set within 2.5 mm across and 3 mm in height of it, square within 6 degrees, for 0.2 s; turned round it cannot get down past the print head post). 0.75: and the cover is latched shut over it. 1.0: and every point on both hands' finger pads is at least 50 mm from the label maker, held 1 s. The label maker pushed more than 20 mm or turned more than 10 degrees caps the score at 0.5; a cassette off the desk scores 0.",
+  "run_limit": "1,600 control steps (80 seconds at 20 Hz)",
+  "reset_notes": "Fixed poses, no randomisation: cover latched shut, used-up cassette in the bay, new cassette face up beside its empty carton.",
+  "fidelity": "PhysX 240 Hz; rigid bodies, box colliders under detailed drawn meshes. The cover is a revolute joint to the free body (0-110 deg, past upright it stays open). Disclosed rules: the latch holds the cover shut until a closed hand presses its tab 0.3 s, and relatches when it is back down; a new cassette set square on its seat clicks in as a joint to the body. Tape and ribbon are drawn; no printing.",
+  "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 1004 steps.",
+  "media": "M-2CHGLE"
+}
