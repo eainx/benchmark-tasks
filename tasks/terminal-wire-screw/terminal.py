@@ -45,9 +45,9 @@ WINDOW_Z = RAIL_TOP + 0.015          # its centre height
 CAGE_DEPTH = 0.022                   # how far the clamp channel runs into the block
 SCREW_Y = FACE_Y + 0.012             # clamp screw, from the top, above the clamp
 LIP = 0.002                          # the bore's top lip ...
-LIP_R = 0.0040                       # ... narrows it to 8 mm: it guides the 7 mm blade
+LIP_R = 0.0040                       # ... narrows it to 8 mm: it guides the 6.5 mm flat tip and its shaft
 ACCESS_R = 0.0055                    # access hole in the block's top down to the screw head
-SCREW_R = 0.0050                     # M6 head, down its 11 mm guide hole
+SCREW_R = 0.0050                     # M6 slotted clamp screw (10 mm head, 1.2 mm slot), down its 11 mm guide hole
 SCREW_H = 0.004
 HEAD_TOP = RAIL_TOP + BLOCK[2] - 0.014   # screw head 14 mm down its access hole (it guides the blade)
 
@@ -197,7 +197,7 @@ def wire_object() -> Part:
                             parent_pos=tuple(float(v) for v in ROOT)))
 
 
-RECESS = (0.0037, 0.003)             # the head's driving recess: floor radius, depth (the blade seats in it)
+RECESS = (0.0037, 0.003)             # the head's drive slot, drawn as a round recess: floor radius, depth (the tip seats in it)
 FUNNEL = 0.0047                      # its radius at the top: the recess flares, so the blade's tip finds it
 
 
@@ -228,8 +228,8 @@ HOLDER_XY = (0.180, 0.200)
 HOLDER = (0.040, 0.040, 0.040)
 HOLE = 0.016
 HANDLE = (0.015, 0.050)              # half-width, length: square-section grip
-SHAFT = (0.0035, 0.045)              # 7 mm shaft, a stubby screwdriver
-BIT_R = 0.0032                       # PZ3 tip, drawn round
+SHAFT = (0.0035, 0.045)              # stubby slotted screwdriver, 1.0 x 6.5 mm tip (ISO 2380-1): 7 mm round shaft
+BIT_R = 0.0032                       # its 6.5 mm wide flat tip, drawn round (6.4 mm)
 DRIVER_MASS = 0.090
 DRIVER_LIFT = 0.004
 

@@ -22,10 +22,20 @@ Positions are in the station frame (m): x away from the arm bases, y to the left
 | mounting plate | fixed, galvanised steel | 300 x 440 x 3 mm on two 40 mm timber battens | centre (0.23, -0.08) |
 | DIN rail and terminal row | fixed | TS35 rail along x; five 35 mm2 blocks 15.2 x 60 x 52 mm between end stops | rail at y 0.03; empty block at x 0.23 |
 | clamp opening (empty block) | | 9.5 x 9.5 mm, 22 mm deep, centred 15 mm above the rail | entry face at y 0, facing -y |
-| clamp screw | turns about z | head 10 mm, flared driving recess 3 mm deep, 14 mm down a bore (8 mm lip, 11 mm below) | 12 mm in from the entry face |
+| clamp screw | turns about z | M6 slotted: head 10 mm, slot 1.2 mm wide (drawn as a flared round recess 3 mm deep), 14 mm down a bore (8 mm lip, 11 mm below) | 12 mm in from the entry face |
 | cable duct | fixed, slotted | 40 x 50 mm along x | y -0.26 |
 | incoming conductor | sprung at the duct exit | 35 mm2: 11 mm over insulation, 7 mm copper, 220 mm of insulation, stripped 18 mm, 65 g | leaves the duct at (0.23, -0.245); rests about 8 degrees off line toward the arms and 8 degrees drooping, insulation ending 29 mm short of the block |
-| screwdriver | free | 7 mm round blade 45 mm long, 30 x 30 x 50 mm square grip, 90 g | tip-down in a 40 mm holder at (0.18, 0.20) |
+| screwdriver | free | slotted, 1.0 x 6.5 mm flat tip (drawn as a 6.4 mm round tip), 7 mm round shaft 45 mm long, 30 x 30 x 50 mm square grip, 90 g | tip-down in a 40 mm holder at (0.18, 0.20) |
+
+### Screw and screwdriver
+
+The real part is a 35 mm2 feed-through screw-clamp block such as the Phoenix Contact UT 35: an M6
+slotted clamp screw (10 mm head, 1.2 mm wide slot), rated 3.2-3.7 N m, 18 mm strip length. The tool is
+the matching slotted screwdriver, 1.0 x 6.5 mm flat tip to ISO 2380-1 (for example Phoenix SZS
+1.0 x 6.5), here a stubby one with a 7 mm round shaft. The screw sits 14 mm down an access bore whose
+top lip narrows to 8 mm: the 6.5 mm tip and 7 mm shaft pass it with about 0.5 mm a side, so the lip
+centres the tip over the slot, and the 11 mm bore below clears the 10 mm head. The tip's 1.0 mm
+thickness enters the 1.2 mm slot once it is turned into line with it.
 
 ## Scoring
 
@@ -65,8 +75,9 @@ of the clamped conductor and both stand clear.
   the conductor is held where it is by stiffening its joints; the clamp cage itself is drawn, not
   moved. Clamped and tight are turn counts (0.3 and 0.6 turn) standing in for the feel and the
   3.5 N m of a real trial. No reaction torque is put on the screwdriver.
-- **Screw head:** drawn and collided as a round head with a flared round recess (no cross), so the
-  blade cannot cam out.
+- **Screw head and tip:** the slot and the flat tip are drawn and collided round (a flared round
+  recess and a 6.4 mm round tip), so the tip seats at any angle and cannot cam out; lining the blade
+  up with the slot is not required.
 
 ## Reproduction
 
