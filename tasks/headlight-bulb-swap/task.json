@@ -1,0 +1,22 @@
+{
+  "title": "Replace a car headlamp's H11 bulb: unlatch its connector, quarter-turn the old bulb out, lock the new one in by its base",
+  "category": "Impact on jobs",
+  "keywords": [
+    "automotive service",
+    "headlight bulb",
+    "H11",
+    "quarter-turn bayonet",
+    "connector latch",
+    "don't touch the glass",
+    "bimanual"
+  ],
+  "instruction": "Replace the headlight bulb.",
+  "context": "Replacing a burnt-out headlight bulb is routine work for automotive service technicians and mechanics (about 700,000 in the US) and quick-lube and parts-counter staff. The bulb's connector has to be unlatched before it comes off, the bulb turned out of and into its bayonet port by its plastic base, and the new bulb's quartz glass must not be touched: skin oil on it makes a halogen capsule fail early.",
+  "setup": "Bench top is z = 0.7475 m; everything is real size. A folded red cotton shop towel (460 x 330 x 10 mm) centred at x 0.40, y 0.055. On it stands a halogen headlamp unit for a compact car as it sits in the car (400 W x 200 H x 250 D mm, 1.6 kg; black polypropylene housing, clear polycarbonate lens wrapping round its outboard (+x) corner over an aluminised turn-signal reflector, aluminised main reflectors, two blue beam adjusters, steel-bushed mounting ears), centred at x 0.40, lens toward +y, back face at y -0.06 toward the right arm. On the back, two moulded ports 115 mm above the bench: the high-beam port (x 0.47) keeps its black rubber dust cover (62 mm); in the low-beam port (x 0.33; 36 mm bore, boss 48 mm across) sits the old H11 12 V 55 W bulb (PGJ19-2 base with three bayonet lugs, grey PBT grip, 10 mm quartz capsule, 25 g), locked, its L-shaped socket pointing toward the arms (-x), with the lamp's black PA66 pigtail connector (22 x 18 x 22 mm, press-to-release tab on top, two 18 AWG leads to the lamp's main plug) latched onto it. The new H11 bulb (same part) lies in its opened blister pack (blue printed paperboard card 110 x 160 mm with a clear PETG tray, its lid torn back) on the bench at x 0.225, y -0.30: axis along +y with the capsule toward +y, its socket pointing down into the tray and its flange resting in the tray's moulded cradle.",
+  "scoring": "0.25: the old bulb is out of the port: turned its quarter turn back so its lugs clear the notches, and drawn at least 20 mm back out of the port. 0.5: and the new bulb is locked in the port: put in square and turned at least 88 degrees. 0.75: and the connector is latched on the new bulb's socket. 1.0: and both hands are at least 80 mm from the new bulb and the connector and 50 mm from the old bulb, with the old bulb at rest, held 1 s. Touching the new bulb's glass (a finger pad within 2.5 mm of its quartz capsule) caps the score at 0.5; a bulb or the connector falling off the bench scores 0.",
+  "run_limit": "1,800 control steps (90 seconds at 20 Hz)",
+  "reset_notes": "Fixed poses, no randomisation: the old bulb locked in the low-beam port with the connector latched on it, the new bulb in its blister; the arms at their rest poses.",
+  "fidelity": "PhysX 240 Hz; parts rigid, drawn as detailed meshes over simple hidden colliders. Rules: the connector's latch holds it (a fixed joint) until a closed hand presses its tab 0.3 s; each bayonet is a hinge about the port axis held by a stop and a stiff damping drive, turnable once unlatched and gripped; the new bulb's hinge switches on when it is put in square and locks at 88 deg; the connector latches within 4 mm of its seat. Leads drawn only.",
+  "scores": "Dream-1 run: 0 after 321 steps (16.05 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 1027 steps.",
+  "media": "M-HNPKUG"
+}
