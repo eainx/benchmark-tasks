@@ -1,0 +1,21 @@
+{
+  "title": "Sort four incoming letters into a desktop mail sorter: read each room on the envelope and slide it into that pigeonhole",
+  "category": "Impact on jobs",
+  "keywords": [
+    "mailroom",
+    "office clerk",
+    "mail sorting",
+    "pigeonhole",
+    "reading an address",
+    "flat insertion",
+    "envelope"
+  ],
+  "instruction": "Sort the letters into their room boxes.",
+  "context": "Sorting the day's incoming mail into labelled pigeonholes is routine work for office clerks (about 2.5 million in the US), mail clerks, receptionists and hotel front-desk staff. Unlike dropping objects into bins, each letter must be matched to one of six printed room labels by reading the room on its address (three compartments get none, one gets two), and the letter is a thin flat sheet: slid out of a stepped organizer by its edge, turned from standing to flat, and slid all the way into a 95 mm high opening (7 mm clearance a side) with nothing left sticking out.",
+  "setup": "Desk top is z = 0.7475 m; everything real size. Wooden desktop mail sorter (fixed, about 6 kg): 2 columns x 3 rows of open pigeonholes, each 255 W x 95 H x 240 D mm, of 15 mm oak-veneered boards with a 6 mm hardboard back, 555 W x 345 H x 246 D mm overall, openings facing -y, front at y 0.00, centred at x 0.42 (columns at x 0.285 and 0.555). Each opening has a white printed label (70 x 13.5 mm, black 9.5 mm digits, aluminium holder) on the board edge below it: 101 and 102 on the bottom row, 201 and 202 in the middle, 301 and 302 on top (left column first). On the desk to the right of the right arm's base, an open-ended black powder-coated wire-mesh step file organizer (free, 0.45 kg; 300 x 135 mm, four 33.5 mm sections whose floors rise 10 mm per section, dividers 40-95 mm high, ends open above a 6 mm base rail) centred at x 0.245, y -0.45, turned so its sections run across x with the low front toward +x. In it, one in each section, stand four #10 business envelopes (241 x 105 x 4 mm, off-white wove with three folded sheets inside, 28 g each), long side along y, addressed face toward +x: front (+x) to back ROOM 202, ROOM 102, ROOM 302, ROOM 202 (two letters for room 202), each with the room in 12 mm bold capitals above a fictitious addressee, company and street line, a return address, a stamp and a barcode. Arms at rest. Rooms 101, 201 and 301 receive no letter.",
+  "scoring": "An envelope is filed in a pigeonhole when all eight corners of its body lie inside that compartment (between its side boards, above its floor, below the shelf over it and at least 2 mm behind the opening). 0.2 for each envelope that has been filed in the pigeonhole labelled with its own room (up to 0.8). 1.0: all four filed correctly at once and at rest (under 10 mm/s and 0.3 rad/s), with both hands' pads at least 30 mm from every envelope and out of the sorter's openings, held 1 s. Capped at 0.4: any envelope filed in or resting inside a pigeonhole of another room; any envelope dropped on the desk outside the organizer and the sorter (centre within 30 mm of the desk top); the organizer knocked over 10 mm or tilted over 10 degrees at any time.",
+  "run_limit": "2,400 control steps (120 seconds at 20 Hz)",
+  "fidelity": "PhysX 240 Hz. Each envelope is one rigid 241 x 105 x 4 mm body (paper does not bend; contents not modelled); its print, stamp and barcode are drawn. The wire organizer is one rigid body with hidden thin-box colliders under drawn wire; the sorter is fixed. Printed text is flat ink geometry rasterised from DejaVu Sans. No rules: drawing out, turning, inserting and dropping are all contact physics.",
+  "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 2122 steps.",
+  "media": "M-ZUR5BM"
+}
