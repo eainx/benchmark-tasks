@@ -12,11 +12,11 @@ empty wastebasket. The vacuum rolls if pushed, so one hand steadies it while the
 
 ## Why this job
 
-Changing a full dust bag is routine work for maids and housekeeping cleaners (about 900,000 in the
-US) and janitors (about 2.2 million), and a common household chore. The full bag comes up by its
-collar's tab and goes straight in the bin; the new collar has to go down the holder's channels
-square until it stops, so its gasket seals round the inlet, or the vacuum runs with dust bypassing
-the bag.
+Changing the full dust bag in a bagged canister vacuum is one of the most familiar household chores,
+and routine work for housekeeping staff. The full bag comes up by its collar's tab and goes straight in
+the bin; the new collar has to go down the holder's channels square until it stops, so its gasket seals
+round the inlet, and the lid is shut and latched, all while one hand keeps the vacuum, which rolls on its
+wheels, from being pushed away.
 
 ## Real parts
 
@@ -30,6 +30,30 @@ the bag.
 | new bag | same collar, fleece folded behind it | pack 96 x 125 x 14 mm; 0.03 kg |
 | carton | printed paperboard, opened, at (0.30, -0.30) | 140 x 75 x 75 mm |
 | wastebasket | polypropylene, rolled rim, at (0.30, 0.43) | 260 mm across, 230 mm tall |
+
+## Real-world build
+
+No maker publishes the dimensions of its bag collars and holders, so the holder and the collars are
+made from the files in `fabrication/` (written by `fabrication/make_fabrication.py` from the very
+dimensions the simulation uses, `vac.py`):
+
+- **Vacuum:** any bagged canister vacuum whose bag compartment is at least 175 x 250 mm inside and 175 mm
+  deep, for example a Miele Complete C3 or Classic C1 (GN bags). Take out its own bag holder.
+- **Holder:** print `holder.stl` (PLA or PETG, 0.2 mm layers, plate face down: a 1.5 mm plate with a 50 mm
+  opening, two 30 mm channels with a 12 mm gap behind lips covering 4 mm of each collar edge, chamfered
+  lead-ins, and the stop ledge 60 mm below the opening's centre). Tape it to the compartment's front wall
+  with 1 mm double-sided foam tape, its opening round the inlet. Glue `bevel.stl` along the wall's inner
+  top edge over the holder.
+- **Collars:** cut collar and tab (120 x 125 mm + 40 x 75 mm, 38 mm hole) from 2 mm greyboard with
+  `collar.svg`; glue on the gasket ring (52/38 mm, 3 mm EPDM foam), its hole over the card's.
+- **Full bag (about 5 minutes, clean and contained):** cut a 300 x 220 mm sheet of 60-80 g/m2 spunbond
+  polypropylene fleece, fold and glue (or staple) it into a 200 mm wide pouch, and glue its mouth round the
+  back of a collar's hole. Put in a quart zip-top freezer bag holding 150 g of wheat bran (about 0.6 L),
+  sealed. Fold and tape the pouch into a 127 x 200 x 117 mm block behind the collar and check the whole on
+  a kitchen scale: 180 +- 10 g. The bran never leaves the sealed inner bag, so the full bag is reused from
+  trial to trial (refold and re-seat it, about 2 minutes).
+- **New bag:** a collar with an empty fleece pouch folded flat behind it (96 x 125 x 14 mm, about 30 g),
+  standing in an opened 140 x 75 x 75 mm carton, pack toward the carton's back.
 
 ## Scoring
 
@@ -105,5 +129,6 @@ state.
 
 ## Files
 
-`task.py` (scene and, later, demo), `vac.py` (geometry), `scoring.py` (scorer), `simkit.py`
-(compound rigid parts and joints). No third-party assets.
+`task.py` (scene, latch rule, demo), `vac.py` (geometry), `scoring.py` (scorer), `simkit.py` (compound
+rigid parts and joints), `fabrication/` (holder and bevel STLs, collar template SVG, and the script that
+writes them from `vac.py`). No third-party assets.
