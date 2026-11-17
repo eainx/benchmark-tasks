@@ -1,0 +1,25 @@
+{
+  "title": "Stock a blister card on a spiral anti-sweep hook: hang it on the rod and wind the coil back while steadying the card",
+  "category": "Impact on jobs",
+  "keywords": [
+    "spiral anti-sweep hook",
+    "peg hook",
+    "blister card",
+    "euro slot",
+    "slatwall",
+    "retail stocking",
+    "loss prevention",
+    "screw feed",
+    "bimanual",
+    "guide and turn"
+  ],
+  "instruction": "Stock the new card on the spiral hook: hang it on the hook and wind it in until the coil holds it.",
+  "context": "Stocking peg hooks is daily work for stock clerks and order fillers (about 2.8 million in the US) and retail salespersons. In pharmacy, battery and razor aisles the hooks are spiral anti-sweep dispensers: cards hang on a rod but are moved only by a coil turned with a front knob, one pitch per turn. Unlike a straight peg or scan hook, where a card is simply pushed along the wire, stocking one takes both hands in step: one guides the hung card so it doesn't swing or tilt into the coil while the other winds the knob back.",
+  "setup": "Bench top is z = 0.7475 m (a light stockroom bench). Along the bench's left side stands a white melamine slatwall gondola-end section (480 long x 305 tall x 19 mm, four 3 in slats with dark grooves and aluminium insert lips), its face at y 0.330 facing -y, spanning x 0.320 to 0.800. On it at x 0.350 a 9 in (229 mm) spiral anti-sweep dispensing hook points toward -y: a 4.8 mm chrome steel rod at z 0.9825 runs from y 0.305 to its slightly upturned tip at y 0.076; 30 mm above it a polished chrome dispensing coil of 3 mm wire (46 mm across, 28 mm pitch, 175 mm long, its free front end at y 0.120) turns on an axle, driven by a black ribbed plastic knob 26 mm across x 16 mm at its front end (centre y 0.108, z 1.0125); the coil is set so its front pocket (y 0.131) is open; a clear label strip above the knob carries a yellow price tag (BRIGHTCELL AA 4PK $6.49). Two blister cards of AA batteries (made-up brand Brightcell, printed AA 4 PACK; 100 x 180 mm, 0.8 mm board, euro slot 30 mm wide with a 9 mm centre hole 8 mm below the top edge, clear PETG blister 70 x 66 x 18 mm holding four black-and-gold AA cells, 105 g) hang on the rod by their slots in the coil's two back gaps (y 0.268 and 0.240), blisters toward -y. Further along the slatwall at x 0.660 a plain 6 in chrome peg hook holds two USB-C cable cards (made-up brand ZipLink) for context. A brown corrugated shipping carton (140 x 70 x 100 mm, top flaps folded open, printed Brightcell AA 4 PACK, CASE PACK 12 and a white item label) stands at x 0.270, y -0.120, print toward -y; a slotted insert on an 80 mm riser inside holds the new card upright at y -0.108, blister toward -y, its top edge 263 mm above the bench.",
+  "scoring": "Milestones latch: 0.2 the new card lifted out of the carton; 0.4 it hangs on the rod by its euro slot; 0.6 it is in the coil, behind the wire's free front end; 0.8 it has been wound back at least 3/4 pitch (21 mm) behind the coil's front end, which only the turning coil can do since the wire crossings block it otherwise. 1.0 when, in addition, all three cards hang on the rod, both hands are 60 mm clear and every card is at rest (under 0.05 m/s and 0.5 rad/s) for 1 s. Any card on the bench scores 0. In a real trial: the card's slot on the rod and its position behind the coil's front end are read from video or with a ruler.",
+  "run_limit": "1800 control steps (90 s at 20 Hz)",
+  "reset_notes": "Fixed poses, no randomisation: the two cards hanging in the coil's two back gaps, the coil at its set turn with its front pocket open, the new card standing on the carton's riser insert; arms at their ready pose.",
+  "fidelity": "PhysX 240 Hz. Rigid bodies with detailed drawn meshes over hidden simple colliders. The coil is one rigid body of capsule wire segments on a damped revolute axle with joint friction; cards are rigid 0.8 mm boards with the euro slot's centre hole in their colliders, so they hang on the rod and move only by contact with the rod and coil. Board flex is not simulated. Print is a made-up brand from free fonts. Card swing is damped (slot friction, air). The fixture's clear top hood is left off.",
+  "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 1132 steps.",
+  "media": "M-TF6AWS"
+}
