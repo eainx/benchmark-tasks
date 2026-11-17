@@ -213,30 +213,41 @@ def bulb_vmeshes(R, prefix="b"):
 
 # -- connector -------------------------------------------------------------------------------------
 def connector_vmeshes(part_pos):
-    cx, cy, cz = part_pos
-    TAB = (0.30, 0.30, 0.32)
+    """The connector body (its latch tab and leads are separate parts)."""
     V = [_vm("body", M.rbox(H.CONN, 5, axis="X"), (0.025, 0.025, 0.028), "gloss"),
          _vm("seal", M.rbox((0.0025, H.CONN[1] - 0.002, H.CONN[2] - 0.002), 6, axis="X"), (0.45, 0.45, 0.46), "matte",
              offset=(H.CONN[0] / 2 + 0.0008, 0.0, 0.0)),
-         _vm("tab", M.rbox((0.015, 0.011, 0.0028), 4), TAB, "satin", offset=(-0.001, 0.0, H.CONN[2] / 2 + 0.0020)),
-         _vm("tab_ramp", M.rbox((0.003, 0.011, 0.0045), 4), TAB, "satin", offset=(0.0060, 0.0, H.CONN[2] / 2 + 0.0030)),
+         _vm("tab_hinge", M.rbox((0.004, 0.012, 0.002), 4), (0.10, 0.10, 0.11), offset=(-0.009, 0.0, H.CONN[2] / 2 + 0.001)),
          _vm("boot", M.revolve([(0.0, 0.0), (0.0065, 0.0), (0.0058, -0.004), (0.0050, -0.008), (0.0045, -0.012),
                                 (0.0, -0.012)], n=24, axis="X"), (0.02, 0.02, 0.02), "gloss",
-             offset=(-H.CONN[0] / 2, 0.0, -0.002))]
-    for k in range(3):                                                   # grip ridges on the tab
-        V.append(_vm(f"tab_ridge{k}", M.rbox((0.0010, 0.010, 0.0010), 3), (0.55, 0.55, 0.57),
-                     offset=(-0.006 + 0.004 * k, 0.0, H.CONN[2] / 2 + 0.0036)))
+             offset=(-H.CONN[0] / 2 + 0.006, 0.0, 0.0))]
     for k, d in enumerate((-0.004, 0.004)):                              # the two cavity windows on its back
         V.append(_vm(f"cavity{k}", M.rbox((0.0006, 0.0045, 0.006), 6, axis="X"), (0.35, 0.22, 0.12),
-                     offset=(-H.CONN[0] / 2 - 0.0002, d, 0.006)))
-    # two 18 AWG leads out of the boot, down to the towel and along the lamp's back to its main plug
-    for k, (dy, col) in enumerate(((-0.0024, (0.02, 0.02, 0.02)), (0.0024, WHITE))):
-        x0 = cx - H.CONN[0] / 2 - 0.012
-        pts = [(x0 + 0.004, cy + dy, cz - 0.002), (x0 - 0.010, cy + dy, cz - 0.004), (x0 - 0.016, cy + dy, H.BOT_Z + 0.004),
-               (x0 + 0.020, cy + dy - 0.004, H.BOT_Z + 0.002), (H.LAMP_X - 0.030, H.BACK_Y - 0.026 + dy, H.BOT_Z + 0.002),
-               (H.LAMP_X - 0.024, H.BACK_Y - 0.020 + dy, H.BOT_Z + 0.030)]
-        path = M.bend(pts, radius=0.012, steps=6)
-        V.append(_vm(f"lead{k}", M.tube(path, 0.0020, n=10), col, "gloss", offset=(-cx, -cy, -cz)))
+                     offset=(-H.CONN[0] / 2 - 0.0002, d, 0.007)))
+    return tuple(V)
+
+
+def tab_vmeshes():
+    TAB = (0.30, 0.30, 0.32)
+    V = [_vm("key", M.rbox(H.TAB, 4), TAB, "satin"),
+         _vm("ramp", M.rbox((0.003, H.TAB[1], 0.0042), 4), TAB, "satin", offset=(0.0065, 0.0, 0.0008))]
+    for k in range(3):
+        V.append(_vm(f"ridge{k}", M.rbox((0.0010, 0.009, 0.0010), 3), (0.55, 0.55, 0.57),
+                     offset=(-0.005 + 0.004 * k, 0.0, H.TAB[2] / 2 + 0.0005)))
+    return tuple(V)
+
+
+def lead_vmeshes(axis, L, i):
+    """A link of the taped lead pair: one black and one white 18 AWG lead side by side, a wrap of tape."""
+    ax = {"X": np.array([1.0, 0, 0]), "Y": np.array([0, 1.0, 0]), "Z": np.array([0, 0, 1.0])}[axis]
+    side = np.array([0, 0, 1.0]) if axis != "Z" else np.array([0, 1.0, 0])
+    V = []
+    for k, (d, col) in enumerate(((-0.0012, (0.02, 0.02, 0.02)), (0.0012, WHITE))):
+        p0 = -ax * (L / 2 + 0.0006) + side * d
+        p1 = ax * (L / 2 + 0.0006) + side * d
+        V.append(_vm(f"wire{k}", M.tube([p0, p1], 0.0013, n=10), col, "gloss"))
+    if i % 2 == 0:
+        V.append(_vm("tape", M.revolve([(0.0027, -0.003), (0.0027, 0.003)], n=16, axis=axis), (0.08, 0.08, 0.08), "matte"))
     return tuple(V)
 
 
@@ -311,3 +322,62 @@ def towel_vmeshes():
         V.append(_vm(f"hem{k}", M.rbox((x - 0.006, 0.004, 0.0012), 10), (0.55, 0.07, 0.06), "matte",
                      offset=(0.0, oy, z / 2 - 0.0008)))
     return tuple(V)
+
+
+
+# -- engine-bay section ------------------------------------------------------------------------------
+def bay_vmeshes(part_pos):
+    E_COAT = (0.06, 0.06, 0.065)          # black e-coated steel
+    BODY = (0.55, 0.57, 0.60)             # body colour (silver) on the fender apron
+    ALU = (0.62, 0.64, 0.66)
+    PP = (0.08, 0.08, 0.085)
+    V = []
+
+    def box(name, key, color, material=None, e=6.0, axis="Z", pad=0.0):
+        x0, x1, y0, y1, z0, z1 = H.BAY[key]
+        V.append(_vm(name, M.rbox((x1 - x0 + pad, y1 - y0 + pad, z1 - z0 + pad), e, axis=axis), color, material,
+                     offset=((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2)))
+
+    box("tie_bar", "tie_bar", E_COAT, "satin", e=8, axis="X")
+    x0, x1, y0, y1, z0, z1 = H.BAY["tie_bar"]
+    for k in range(5):                                                   # its lightening holes and flanges
+        V.append(_vm(f"hole{k}", M.revolve([(0.0, 0.0), (0.009, 0.0), (0.009, 0.0008), (0.0, 0.0008)], n=24), (0.02, 0.02, 0.02),
+                     offset=(x0 + 0.03 + 0.05 * k, (y0 + y1) / 2, z1 + 0.0002)))
+    for yy in (y0 - 0.006, y1 + 0.006):
+        V.append(_vm(f"flange{yy > 0.12}", M.rbox((x1 - x0, 0.012, 0.003), 8, axis="X"), E_COAT, "satin",
+                     offset=((x0 + x1) / 2, yy, z0 + 0.0015)))
+    box("core", "radiator", ALU, "aluminium_brushed", e=10, axis="X")
+    x0, x1, y0, y1, z0, z1 = H.BAY["radiator"]
+    for k in range(20):                                                  # its tubes, seen edge-on
+        V.append(_vm(f"tube{k}", M.rbox((x1 - x0, 0.0012, 0.0016), 10, axis="X"), (0.30, 0.31, 0.33),
+                     offset=((x0 + x1) / 2, y0 - 0.0004, z0 + 0.008 + 0.0093 * k)))
+    box("end_tank", "end_tank", PP, "satin", e=5)
+    box("bracket_in", "bracket_in", E_COAT, "satin", e=6)
+    box("fender", "fender", BODY, "satin", e=10, axis="X")
+    box("fender_rail", "fender_rail", BODY, "satin", e=8, axis="Y")
+    box("bracket_out", "bracket_out", E_COAT, "satin", e=6)
+    box("lower_support", "lower_support", E_COAT, "satin", e=6)
+    # air filter box: lower housing, lid with four spring clips, intake snorkel along the fender
+    x0, x1, y0, y1, z0, z1 = H.BAY["airbox"]
+    V.append(_vm("airbox", M.loft([(z0, x1 - x0, y1 - y0, 5, (x0 + x1) / 2, (y0 + y1) / 2),
+                                    (z1 - 0.040, x1 - x0, y1 - y0, 5, (x0 + x1) / 2, (y0 + y1) / 2),
+                                    (z1 - 0.036, x1 - x0 + 0.010, y1 - y0 + 0.010, 5, (x0 + x1) / 2, (y0 + y1) / 2),
+                                    (z1 - 0.032, x1 - x0 + 0.010, y1 - y0 + 0.010, 5, (x0 + x1) / 2, (y0 + y1) / 2),
+                                    (z1 - 0.004, x1 - x0 - 0.004, y1 - y0 - 0.004, 5, (x0 + x1) / 2, (y0 + y1) / 2),
+                                    (z1, x1 - x0 - 0.020, y1 - y0 - 0.020, 5, (x0 + x1) / 2, (y0 + y1) / 2)], axis="Z", n=48),
+                 PP, "matte"))
+    for k, (x, y) in enumerate(((x0 - 0.003, y0 + 0.04), (x0 - 0.003, y1 - 0.04), (x1 + 0.003, y0 + 0.04), (x1 + 0.003, y1 - 0.04))):
+        V.append(_vm(f"clip{k}", M.rbox((0.003, 0.012, 0.030), 4), STEEL, "steel", offset=(x, y, z1 - 0.034)))
+    snork = M.bend([(0.600, -0.130, H.TOP + 0.110), (0.618, -0.100, H.TOP + 0.110), (0.618, 0.150, H.TOP + 0.110)], radius=0.03)
+    V.append(_vm("snorkel", M.tube(snork, 0.016, n=24), PP, "matte"))
+    # flange bolts holding the lamp
+    for k, (x, y, z) in enumerate(H.BOLTS):
+        V.append(_vm(f"bolt{k}", M.revolve([(0.0, 0.0), (0.0095, 0.0), (0.0095, 0.0015), (0.0065, 0.0015), (0.0065, 0.0065),
+                                            (0.0, 0.0065)], n=6), (0.70, 0.66, 0.40), "steel", offset=(x, y, z)))
+    # the harness: corrugated loom from the lamp's clip along the lamp's foot to the radiator support
+    loom = M.bend([(H.CLIP[0] - 0.004, H.CLIP[1] + 0.004, H.CLIP[2]), (0.18, -0.066, H.TOP + 0.026),
+                   (0.12, 0.02, H.TOP + 0.03), (0.06, 0.11, H.TOP + 0.06)], radius=0.04)
+    V.append(_vm("loom", M.tube(loom, 0.0065, n=14), (0.03, 0.03, 0.03), "satin"))
+    V.append(_vm("hclip", M.rbox((0.014, 0.012, 0.016), 4), (0.10, 0.10, 0.11), "satin",
+                 offset=(H.CLIP[0], H.CLIP[1] + 0.006, H.CLIP[2])))
+    return _shift(tuple(V), -np.asarray(part_pos, float))

@@ -266,6 +266,9 @@ class Part(Box):
     # Detailed visual meshes (no collision): (name, points (N, 3) in the Part's frame, triangles (M, 3),
     # colour, material key or None, opacity). The colliders stay simple primitives, hidden inside.
     vmeshes: tuple = field(default=())
+    # D6 joints from this body to a sibling (or the world): (name, parent or None, parent_pos, pivot (world),
+    # bend stiffness N m/deg, damping N m s/deg). Translations locked, rotations sprung toward the spawn pose.
+    d6: tuple = field(default=())
     hide_root: bool = False  # the root primitive is a collider only, not rendered
 
     def _check(self) -> None:
@@ -761,6 +764,33 @@ def _add_spring(prim, spec: Part) -> None:
     drive.CreateTargetPositionAttr(float(spring.target))
 
 
+def _add_d6(prim, spec, name, parent, parent_pos, pivot, stiffness, damping) -> None:
+    """A D6 joint: translations locked, the three rotations free but sprung (bend stiffness, damping)
+    toward the spawn pose -- a link of a flexible lead."""
+    from pxr import Gf, Sdf, UsdPhysics
+
+    joint = UsdPhysics.Joint.Define(prim.GetStage(), f"{prim.GetPath()}/{name}")
+    joint.CreateBody1Rel().SetTargets([Sdf.Path(str(prim.GetPath()))])
+    if parent is not None:
+        joint.CreateBody0Rel().SetTargets([prim.GetPath().GetParentPath().AppendChild(parent)])
+        joint.CreateLocalPos0Attr(Gf.Vec3f(*(float(a) - float(b) for a, b in zip(pivot, parent_pos))))
+    else:
+        joint.CreateLocalPos0Attr(Gf.Vec3f(*(float(v) for v in pivot)))
+    joint.CreateLocalPos1Attr(Gf.Vec3f(*(float(a) - float(b) for a, b in zip(pivot, spec.pos))))
+    joint.CreateLocalRot0Attr(Gf.Quatf(1.0, 0.0, 0.0, 0.0))
+    joint.CreateLocalRot1Attr(Gf.Quatf(1.0, 0.0, 0.0, 0.0))
+    for dof in ("transX", "transY", "transZ"):
+        lim = UsdPhysics.LimitAPI.Apply(joint.GetPrim(), dof)
+        lim.CreateLowAttr(1.0)
+        lim.CreateHighAttr(-1.0)                     # low > high: locked
+    for dof in ("rotX", "rotY", "rotZ"):
+        drive = UsdPhysics.DriveAPI.Apply(joint.GetPrim(), dof)
+        drive.CreateTypeAttr("force")
+        drive.CreateStiffnessAttr(float(stiffness))
+        drive.CreateDampingAttr(float(damping))
+        drive.CreateTargetPositionAttr(0.0)
+
+
 def _add_hinge(prim, spec: Part) -> None:
     """Anchor the body to the world with a revolute joint and an angular damping drive."""
     from pxr import Gf, Sdf, UsdPhysics
@@ -867,6 +897,8 @@ def _piece_spawner(spec: Part):
             _add_anchor(prim, spec)
         if spec.hinge is not None:
             _add_hinge(prim, spec)
+        for j in spec.d6:
+            _add_d6(prim, spec, *j)
         return prim
 
     return spawn
@@ -941,7 +973,7 @@ def _build_part(spec: Part):
         body["mass_props"] = sim_utils.MassPropertiesCfg(mass=spec.mass)
     cfg = _mesh_cfg(sim_utils, spec.shape, spec.size, spec.axis, **body)
     if (spec.pieces or spec.spring is not None or spec.com is not None or spec.anchor is not None
-            or spec.hinge is not None or spec.vmeshes or spec.hide_root):
+            or spec.hinge is not None or spec.vmeshes or spec.hide_root or spec.d6):
         cfg.func = _piece_spawner(spec)
     return Object(
         name=spec.name,

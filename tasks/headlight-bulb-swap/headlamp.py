@@ -31,7 +31,7 @@ import numpy as np
 
 from dataclasses import replace as _replace
 
-from simkit import Anchor, Hinge, Part, Piece
+from simkit import Anchor, Hinge, Part, Piece, Spring
 
 
 def _colliders(pieces):
@@ -274,26 +274,79 @@ def _connector_on_new():
 
 
 def connector_object() -> Part:
-    """Black connector on the socket, its latch tab on top, two leads running off the back of the lamp to
-    its main plug (drawn; the connector stays where it is until unlatched)."""
+    """Black connector on the socket. Its latch tab is a separate sprung part (tab_object); its leads are a
+    chain of flexible links (lead_objects) from its back end to the harness clip on the lamp."""
     cx, cy, cz = connector_pos()
-    P = [Piece("box", (0.012, 0.010, 0.003), (-0.002, 0.0, CONN[2] / 2 + 0.0015), color=(0.16, 0.16, 0.17)),   # tab
-         Piece("box", (0.002, 0.012, 0.002), (-CONN[0] / 2 + 0.002, 0.0, CONN[2] / 2 + 0.002),
-               color=(0.16, 0.16, 0.17), collide=False)]
-    # two leads out of its back end, down to the towel and along the lamp's back to its main plug
-    zl = BOT_Z + 0.004 - cz
-    for dx, col in ((-0.004, WIRE_A), (0.004, WIRE_B)):
-        P.append(Piece("cylinder", (0.0016, 0.014, 0.0016), (-CONN[0] / 2 - 0.007, dx, -0.004), axis="X", color=col,
-                       collide=False))
-        P.append(Piece("cylinder", (0.0016, -0.004 - zl, 0.0016), (-CONN[0] / 2 - 0.014, dx, (zl - 0.004) / 2),
-                       axis="Z", color=col, collide=False))
-        run = LAMP_X - (cx - CONN[0] / 2 - 0.014)
-        P.append(Piece("cylinder", (0.0016, run, 0.0016), (-CONN[0] / 2 - 0.014 + run / 2, dx, zl), axis="X",
-                       color=col, collide=False))
     return Part("connector", pos=(cx, cy, cz), size=CONN, exact_z=True, mass=0.012, color=(0.10, 0.10, 0.11),
-                friction=(0.8, 0.7), restitution=0.05, contact_offset=0.0015, pieces=_colliders(P),
-                hide_root=True, vmeshes=__import__("visuals").connector_vmeshes((cx, cy, cz)),
+                friction=(0.8, 0.7), restitution=0.05, contact_offset=0.0015, hide_root=True,
+                vmeshes=__import__("visuals").connector_vmeshes((cx, cy, cz)),
                 anchor=Anchor(break_force=1e6, break_torque=1e6), hinge=_connector_on_new())
+
+
+# -- the latch tab: a sprung key on top of the connector ---------------------------------------------
+TAB = (0.015, 0.011, 0.0028)
+TAB_TRAVEL = 0.0020                  # it presses down 2 mm to its stop
+TAB_RELEASE = 0.0012                 # pressed this far, the latch's hook clears the socket's ramp
+TAB_K = 3500.0                       # N/m: about 4 N to press it to release, 7 N to its stop
+
+
+def tab_rest():
+    c = np.asarray(connector_pos(), float)
+    return tuple(float(v) for v in c + np.array([-0.001, 0.0, CONN[2] / 2 + TAB[2] / 2 + 0.0002]))
+
+
+def tab_object() -> Part:
+    pos = tab_rest()
+    return Part("tab", pos=pos, size=TAB, exact_z=True, mass=0.002, color=(0.30, 0.30, 0.32), friction=(0.9, 0.8),
+                restitution=0.0, contact_offset=0.001, hide_root=True,
+                vmeshes=__import__("visuals").tab_vmeshes(),
+                spring=Spring(axis="Z", lower=-TAB_TRAVEL, upper=0.0, stiffness=TAB_K, damping=4.0, target=0.0,
+                              parent="connector", parent_pos=connector_pos()))
+
+
+# -- the connector's leads: a chain of flexible links to the harness clip ------------------------------
+LEAD_R = 0.0025                      # the two 18 AWG leads taped together: about 5 mm across
+LEAD_K = 0.0003                      # N m / deg: bend stiffness at each link joint
+LEAD_D = 0.00003                     # N m s / deg
+CLIP = (0.235, -0.071, TOP + 0.030)  # the harness clip on the lamp's back, low on its inboard corner
+
+
+def _lead_path():
+    """Axis-aligned runs from the connector's back end: back along -x, down, then to the clip along +y."""
+    cx, cy, cz = connector_pos()
+    e = np.array([cx - CONN[0] / 2, cy, cz])
+    corner1 = np.array([0.235, cy, cz])
+    corner2 = np.array([0.235, cy, CLIP[2]])
+    clip = np.asarray(CLIP, float)
+    runs = [(e, corner1, 2, "X"), (corner1, corner2, 4, "Z"), (corner2, clip, 1, "Y")]
+    links = []
+    for a, b, n, ax in runs:
+        for k in range(n):
+            p0 = a + (b - a) * k / n
+            p1 = a + (b - a) * (k + 1) / n
+            links.append((p0, p1, ax))
+    return links
+
+
+def lead_objects():
+    """Seven capsule links, each jointed (D6, sprung) to the next; the first to the connector's back end,
+    the last to the clip (the world). They collide with the lamp, the hands and each other's neighbours'
+    neighbours; adjacent links do not."""
+    links = _lead_path()
+    out = []
+    for i, (p0, p1, ax) in enumerate(links):
+        c = (p0 + p1) / 2
+        L = float(np.linalg.norm(p1 - p0))
+        f3 = lambda v: tuple(float(x) for x in v)
+        parent, ppos = ("connector", f3(connector_pos())) if i == 0 else (f"lead{i - 1}", f3((links[i - 1][0] + links[i - 1][1]) / 2))
+        j = [("j_prev", parent, ppos, f3(p0), LEAD_K, LEAD_D)]
+        if i == len(links) - 1:
+            j.append(("j_clip", None, None, f3(p1), LEAD_K * 3, LEAD_D))
+        out.append(Part(f"lead{i}", pos=f3(c), size=(LEAD_R, float(max(L - 2 * LEAD_R, 0.002)), LEAD_R), shape="capsule",
+                        axis=ax, exact_z=True, mass=0.003, color=(0.05, 0.05, 0.05), friction=(0.6, 0.5),
+                        restitution=0.0, contact_offset=0.0015,
+                        vmeshes=__import__("visuals").lead_vmeshes(ax, L, i), d6=tuple(j)))
+    return out
 
 
 # -- the low-beam port's dust cover (off, on the towel) ----------------------------------------------
@@ -376,3 +429,33 @@ def capsule_segment(pose):
     c0 = fa + FLANGE_T / 2 + 0.008
     a = R @ np.array([0.0, 1.0, 0.0])                                    # the bulb's axis: +y in its Part frame
     return p[:3] + a * c0, p[:3] + a * (c0 + CAPSULE_L)
+
+
+# -- the engine-bay section the lamp is bolted into (fixed; real size, cut at the bench) ---------------
+# Boxes (x0, x1, y0, y1, z0, z1) in world metres: the colliders. visuals.bay_vmeshes draws the parts.
+BAY = {
+    "tie_bar": (-0.060, 0.215, 0.100, 0.150, TOP + 0.195, TOP + 0.225),      # upper radiator support (steel hat channel)
+    "radiator": (-0.060, 0.150, 0.135, 0.157, TOP + 0.000, TOP + 0.195),     # radiator core (aluminium fins)
+    "end_tank": (0.150, 0.172, 0.128, 0.162, TOP + 0.010, TOP + 0.195),      # its plastic end tank
+    "bracket_in": (0.170, 0.222, 0.030, 0.110, TOP + 0.160, TOP + 0.164),    # lamp's inboard top bracket
+    "fender": (0.640, 0.644, -0.220, 0.250, TOP + 0.000, TOP + 0.260),       # fender apron (inner panel)
+    "fender_rail": (0.598, 0.644, -0.220, 0.250, TOP + 0.255, TOP + 0.260),  # its top bolt rail
+    "bracket_out": (0.574, 0.640, 0.020, 0.060, TOP + 0.150, TOP + 0.154),   # lamp's outboard bracket to the fender
+    "lower_support": (0.548, 0.640, -0.020, 0.020, TOP + 0.000, TOP + 0.022),  # lamp's lower mount
+    "airbox": (0.470, 0.620, -0.310, -0.130, TOP + 0.000, TOP + 0.150),      # air filter box beside the lamp's back
+}
+BOLTS = ((0.200, 0.040, TOP + 0.164), (0.582, 0.040, TOP + 0.154), (0.566, 0.000, TOP + 0.022))
+
+
+def bay_object() -> Part:
+    import visuals
+    pos = (0.0775, 0.125, TOP + 0.210)                                   # the tie bar's centre (root collider)
+    P = []
+    for key, (x0, x1, y0, y1, z0, z1) in BAY.items():
+        if key == "tie_bar":
+            continue
+        P.append(Piece("box", (x1 - x0, y1 - y0, z1 - z0), ((x0 + x1) / 2 - pos[0], (y0 + y1) / 2 - pos[1],
+                                                           (z0 + z1) / 2 - pos[2]), hidden=True))
+    x0, x1, y0, y1, z0, z1 = BAY["tie_bar"]
+    return Part("bay", pos=pos, size=(x1 - x0, y1 - y0, z1 - z0), exact_z=True, color=(0.1, 0.1, 0.1),
+                friction=(0.6, 0.5), pieces=tuple(P), hide_root=True, vmeshes=visuals.bay_vmeshes(pos))

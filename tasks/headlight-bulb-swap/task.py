@@ -33,7 +33,7 @@ NAME = "headlight-bulb-swap"
 INSTRUCTION = json.loads((_here / "task.json").read_text())["instruction"]
 HZ = 20
 MAX_STEPS = 1800
-OBJECT_NAMES = ("old_bulb", "new_bulb", "connector")
+OBJECT_NAMES = ("old_bulb", "new_bulb", "connector", "tab")
 
 DOWN = simkit.patch_demo()
 
@@ -48,8 +48,8 @@ def make_environment(embodiment, device, control_hz=HZ):
     from yam_arena import scene as yscene
 
     objects = yscene.task_room("station", embodiment.rig.top_cam)
-    specs = (H.towel_object(), H.housing_object(), H.blister_object(), H.new_bulb_object(), H.old_bulb_object(),
-             H.connector_object())
+    specs = (H.bay_object(), H.housing_object(), H.blister_object(), H.new_bulb_object(), H.old_bulb_object(),
+             H.connector_object(), H.tab_object(), *H.lead_objects())
     objects += [yscene.task_object(s) for s in specs]
     cfg = IsaacLabArenaEnvironment(name="yam_headlight_bulb_swap", scene=Scene(objects), embodiment=embodiment,
                                    env_cfg_callback=yscene.env_cfg_callback(control_hz))
@@ -67,8 +67,7 @@ def _bases():
     """The arm bases the runner's rig uses (station.BASES: y = +-0.305 m)."""
     from yam_arena import station
     return {side: np.asarray(station.BASES[side], float) for side in ("left", "right")}
-TAB_MM = 8.0                                         # a closed hand's pad tips this close to the latch tab: pressing it
-TAB_STEPS = 6                                        # ... for 0.3 s: the latch lets go
+TAB_STEPS = 4                                        # the latch tab held pressed past its release point for 0.2 s: it lets go
 GRIP_MM = 20.0                                       # a hand's pad tips this close to the old bulb's grip, closed on it
 ENGAGE_RADIAL = 0.003                                # new bulb into the port: grip centre off the port axis (m)
 ENGAGE_AXIAL = 0.004                                 # ... off its seat along the axis (m)
@@ -116,7 +115,8 @@ class Dynamics:
     """What rigid bodies cannot do by themselves, from measured poses only (disclosed stand-ins).
 
     * Connector latch: the connector is held on the old bulb's socket (a fixed joint) until its latch
-      tab is pressed: a closed hand's pad tips within 8 mm of the tab's top for 0.3 s. Then it is free.
+      tab -- a separate sprung key (3.5 kN/m, 2 mm travel) on the connector -- is physically pushed down
+      1.2 mm or more (about 4 N) for 0.2 s. Then it is free, hanging on its leads.
     * Old bulb's bayonet: a hinge about the port axis, -90..0 deg, held by a stiff damping drive (the
       bayonet's detent) until the connector is off (10 mm from its seat) and a closed hand holds the
       bulb's grip; then it turns against the O-ring's light drag. Turned a quarter turn (-88 deg) its
@@ -182,8 +182,10 @@ class Dynamics:
         cseat = np.asarray(H.connector_pos(), float)
         Rc, Ro, Rn = H.mat(conn), H.mat(old), H.mat(new)
         # -- the connector's latch
-        tab = conn[:3] + Rc @ np.array([0.002, 0.0, H.CONN[2] / 2 + 0.003])
-        pressed = any(h[1] < 0.004 and float(np.linalg.norm(h[0] - tab)) < TAB_MM / 1000 for h in hands.values())
+        tab = np.asarray(root_poses["tab"], float)
+        rest = H.CONN[2] / 2 + H.TAB[2] / 2 + 0.0002
+        depressed = rest - float((Rc.T @ (tab[:3] - conn[:3]))[2])           # how far the sprung tab is pushed down
+        pressed = depressed >= H.TAB_RELEASE
         self.tab_n = self.tab_n + 1 if pressed else 0
         if not self.free and self.tab_n >= TAB_STEPS:
             self._on("anchor", False)
@@ -199,7 +201,7 @@ class Dynamics:
                 self._damp("old", H.TURN_D if turnable else H.DETENT_D)
                 self._lower("old", -(H.LOCK_DEG + 0.5) if turnable else min(old_deg, 0.0) - 0.5)
                 self.old_turnable = turnable
-            if old_deg <= -(H.LOCK_DEG - 2.0):
+            if old_deg <= -(H.LOCK_DEG - 2.0) and conn_off_old:          # its socket clear of the connector
                 self._on("old", False)
                 self.old_in = False
         # -- the new bulb's bayonet
@@ -235,7 +237,7 @@ class Dynamics:
                 "new_radial_mm": round(1000 * radial, 1), "new_axial_mm": round(1000 * rel[1], 1),
                 "new_axis_deg": round(axis_deg, 1), "new_lug_deg": round(lug_deg, 1),
                 "conn_mm": round(1000 * crel, 1), "conn_deg": round(ang, 1),
-                "tab_mm": round(1000 * min(float(np.linalg.norm(h[0] - tab)) for h in hands.values()), 1)}
+                "tab_pressed_mm": round(1000 * depressed, 2)}
 
 
 def make_dynamics(env):
@@ -274,7 +276,8 @@ def _tcp(tip, rot, label, seconds, finger):
     return Waypoint(seconds, tuple(map(float, tip - rot @ np.array([0.0, 0.0, PAD_TIP]))), finger, label, rot)
 
 
-REST = {"left": (0.16, 0.24, H.TOP + 0.20), "right": (0.16, -0.24, H.TOP + 0.20)}
+REST = {"left": (0.16, 0.24, H.TOP + 0.26), "right": (0.16, -0.24, H.TOP + 0.20)}
+OVER_BAR = np.array([0.300, 0.100, H.TOP + 0.280])   # the left hand's way past the radiator support's tie bar end
 Y = np.array([0.0, 1.0, 0.0])
 A_L = np.array([1.0, 0.0, 0.0])                     # the left hand takes the connector level, from behind its leads
 CONN_GRIP = -0.0075                                  # jaws on the connector's 18 mm sides
@@ -298,7 +301,7 @@ def demo():
     C = np.asarray(H.connector_pos(), float)
     B = np.asarray(H.bulb_seated_pos(), float)
     NB = np.asarray(H.new_bulb_pos(), float)
-    tab = C + np.array([0.002, 0.0, H.CONN[2] / 2 + 0.0028 - 0.0015])     # pressing the tab, 1.5 mm in
+    tab = np.asarray(H.tab_rest(), float) + np.array([0.003, 0.0, H.TAB[2] / 2 - 0.0080])   # pushing on the tab (2 mm to its stop)
     down_x = grip((0, 0, -1), 90, up=(1, 0, 0))                           # top-down, jaws along x
     down_y = grip((0, 0, -1), 180, up=(1, 0, 0))                          # top-down, jaws along y: fits between the left's
     g_conn = grip(A_L, 180)                                               # jaws along y (wrist mid-range)
@@ -312,7 +315,7 @@ def demo():
     n_tip = NB + np.array([0.0, -0.004, -0.004])
     pre_ins = np.array([B[0], B[1] - 0.045, B[2]])
     right = [
-        Waypoint(1.5, REST["right"], FINGER_CLOSED, "look", DOWN),
+        Waypoint(3.5, REST["right"], FINGER_CLOSED, "look", DOWN),
         _tcp(tab + np.array([0, 0, 0.05]), down_y, "over the latch tab", 2.0, FINGER_CLOSED),
         _tcp(tab + np.array([0, 0, 0.02]), down_y, "over the latch tab", 1.6, FINGER_CLOSED),
         _tcp(tab, down_y, "press the tab", 1.4, FINGER_CLOSED),
@@ -358,9 +361,10 @@ def demo():
     right, mr, tr = _seq(right)
     t_press = mr["MARK_PRESSED"]
     t_done = mr["MARK_RIGHT_DONE"]
-    park = np.array([0.230, -0.125, H.TOP + 0.150])
+    park = np.array([0.235, -0.125, H.TOP + 0.130])                       # within the leads' reach
     left = [
         Waypoint(1.0, REST["left"], FINGER_OPEN, "look", DOWN),
+        _tcp(OVER_BAR, g_conn, "over the radiator support", 1.5, FINGER_OPEN),
         _tcp(c_tip - A_L * 0.06, g_conn, "behind the connector", 2.0, FINGER_OPEN),
         _tcp(c_tip, g_conn, "round the connector", 1.2, FINGER_OPEN),
         _tcp(c_tip, g_conn, "take the connector", 0.6, CONN_GRIP),
@@ -378,7 +382,8 @@ def demo():
              _tcp(c_tip + np.array([0.0015, 0.0, 0.0]), g_conn, "push it on till it latches", 0.6, CONN_GRIP),
              _tcp(c_tip, g_conn, "let go of it", 0.6, FINGER_OPEN),
              _tcp(c_tip - A_L * 0.07, g_conn, "back off", 1.2, FINGER_OPEN),
-             Waypoint(2.0, REST["left"], FINGER_OPEN, "rest", DOWN)]
+             _tcp(OVER_BAR, g_conn, "over the radiator support", 1.5, FINGER_OPEN),
+             Waypoint(1.5, REST["left"], FINGER_OPEN, "rest", DOWN)]
     left, ml, _ = _seq(left)
     PLAN_T.update(mr)
     PLAN_T.update(ml)

@@ -2,13 +2,15 @@
 
 **Instruction:** "Replace the headlight bulb."
 
-A halogen headlamp unit, off the car, stands upright on a folded shop towel as it sits in the car, its
-back toward the right arm. In its low-beam port the old H11 bulb is locked by its quarter-turn bayonet,
-with the lamp's pigtail connector latched on its L-shaped socket. The new H11 bulb lies in its opened
-blister pack on the bench, socket down in the tray. The connector's latch tab is pressed while the
-connector is pulled off, the old bulb is turned a quarter turn back and drawn out, the new bulb is taken
-by its base (never by its glass), put into the port and turned a quarter turn to lock, and the connector
-is pushed back on until it latches.
+A halogen headlamp is bolted into a real-size section of a compact car's engine bay: the radiator
+support and radiator on its inboard side, the fender apron on its outboard side and the air-filter box
+beside its back, which limit how the hands can come at it. In its low-beam port the old H11 bulb is
+locked by its quarter-turn bayonet, with the lamp's pigtail connector latched on its L-shaped socket;
+the connector's leads run to a harness clip on the lamp. The new H11 bulb lies in its opened blister pack
+on the bench. One hand takes the connector while the other pushes its latch tab down; the connector is
+pulled off and held aside on its leads, the old bulb is turned a quarter turn back and drawn out, the
+new bulb is taken by its base (never by its glass), put into the port and turned a quarter turn to lock,
+and the connector is pushed back on until it latches.
 
 ## Why this job
 
@@ -18,15 +20,16 @@ unlatched before it comes off (one hand on the tab, one pulling), the bulb is tu
 bayonet port by its plastic base, and a halogen capsule's quartz glass must not be touched: skin oil on
 it makes the bulb fail early.
 
-## Real parts
+## Real parts and the fixture
 
 | part | spec |
 |---|---|
-| headlamp | halogen reflector unit for a compact car, 400 W x 200 H x 250 D mm, 1.6 kg, black PP housing, clear PC lens wrapping round its outboard corner; low-beam port 36 mm (PGJ19), high-beam port with its rubber dust cover on |
+| engine-bay section (the fixture) | real size, cut at the bench, each part at the coordinates in task.json: black e-coated steel upper radiator support (hat channel 275 x 50 x 30 mm) with an aluminium radiator core and PA end tank; silver-painted steel fender apron with its top bolt rail; black PP air-filter box with steel lid clips and intake snorkel; black steel lamp brackets. A trial rig is built from a salvaged front-end section of any compact car whose halogen headlamp uses an H11 low beam and a 9005 high beam, or from these parts bolted to a bench at the same coordinates. |
+| headlamp | halogen reflector unit of the H11 low / 9005 high type for a compact car, 400 W x 200 H x 250 D mm, 1.6 kg, black PP housing, clear PC lens wrapping round its outboard corner; bolted in by three M6 flange bolts through steel-bushed ears |
 | H11 bulbs (old and new) | 12 V 55 W, PGJ19-2 base with three bayonet lugs and an O-ring, grey PBT grip, L-shaped socket with two 2.8 mm blades, 10 mm quartz capsule, 25 g; locks with a quarter turn |
-| connector | H11 pigtail connector, black PA66, 22 x 18 x 22 mm, press-to-release latch tab on top, two 18 AWG leads |
+| connector | H11 pigtail connector, black PA66, 22 x 18 x 22 mm, a grey sprung latch tab on top (2 mm travel, about 4 N to release) |
+| leads | two 18 AWG leads taped together (5 mm across, about 160 mm) to a harness clip low on the lamp's back, then a 13 mm corrugated loom |
 | blister pack | printed paperboard card 110 x 160 mm, clear PETG tray with a moulded cradle for the bulb's flange, lid torn back |
-| towel | red cotton shop towel, folded 460 x 330 x 10 mm |
 
 ## Scoring
 
@@ -38,8 +41,10 @@ it makes the bulb fail early.
 - **1.0** and every finger pad's surface is at least 80 mm from the new bulb's and the connector's
   surfaces and 50 mm from the old bulb's, with the old bulb at rest (under 0.02 m/s and 0.2 rad/s),
   held 1 s.
-- Touching the new bulb's glass (any finger pad's surface within 2.5 mm of its quartz capsule) caps the
-  score at 0.5. A bulb or the connector falling off the bench scores 0.
+- Touching the new bulb's glass caps the score at 0.5. In a real trial it is judged from the videos:
+  any frame of the wrist or overview cameras showing a finger on the capsule. In simulation it is any
+  finger pad's surface within 2.5 mm of the capsule (pads that close cannot be told from touching in the
+  video). A bulb or the connector falling off the bench scores 0.
 
 A real trial is scored by eye and with a ruler: bulb out and set down, new bulb turned home (its socket
 where the old one's was), connector clicked on, hands away; glass contact is seen on video.
@@ -48,11 +53,16 @@ where the old one's was), connector clicked on, hands away; glass contact is see
 
 Parts are rigid bodies at 240 Hz, drawn as detailed meshes over simple hidden colliders.
 
-- **Latch:** the connector is held on the old bulb's socket by a fixed joint until a closed hand's pad
-  tips are within 8 mm of its tab for 0.3 s; then it is free.
+- **Latch:** the connector is held on the old bulb's socket by a fixed joint. Its latch tab is a
+  separate sprung key on a prismatic joint (3.5 kN/m, 2 mm travel); only a hand physically pushing it
+  down 1.2 mm or more (about 4 N) for 0.2 s releases the connector.
+- **Leads:** seven 5 mm capsule links (2 mm at the clip) on D6 joints with bend stiffness (0.0003 N m/deg)
+  and damping, from the connector's back to the harness clip (fixed). They collide with the lamp, the
+  bay and the hands; a freed connector hangs on them, and they limit how far it can be carried.
 - **Old bulb's bayonet:** a hinge about the port axis held by a stop at 0 and a stiff damping drive (its
   detent) until the connector is 10 mm off its seat and a closed hand holds the bulb's grip. Then it
-  turns against light drag to -90 deg; at -88 deg the hinge is switched off and the bulb draws out.
+  turns against light drag to -90 deg; at -88 deg, with the connector off its socket, the hinge is
+  switched off and the bulb draws out.
 - **New bulb's bayonet:** a hinge made at spawn and switched on when the bulb is put to its seat square
   (grip centre within 3 mm of the port axis and 4 mm of the seat, axis within 8 deg, socket within 15
   deg of straight down: lugs in the notches). It turns to a stop at +90 deg; at +88 deg it is locked:
@@ -67,12 +77,17 @@ Parts are rigid bodies at 240 Hz, drawn as detailed meshes over simple hidden co
 
 ## Scripted demo
 
-The left hand takes the connector level from behind its leads; the right presses the latch tab from
-above with closed jaws while the left pulls the connector off its socket and holds it aside. The right
-grips the old bulb's base from behind, turns it a quarter turn back, draws it out and sets it down on the
-bench. It takes the new bulb from its blister by its base, carries it to the port and pushes it in
-(steering the last centimetres by the measured bulb pose), lets go, regrips it from behind and turns it a
-quarter turn to lock. The left pushes the connector back on until it latches, and both hands stand clear.
+The left hand comes past the radiator support's open end and takes the connector level from behind its
+leads; the right then pushes the latch tab down from above with closed jaws while the left pulls the
+connector off its socket and holds it aside, on its leads. The right grips the old bulb's base from
+behind, turns it a quarter turn back, draws it out and sets it down on the bench beside the air box. It
+takes the new bulb from its blister by its base, carries it to the port and pushes it in (steering the
+last centimetres by the measured bulb pose), lets go, regrips it from behind and turns it a quarter turn
+to lock. The left pushes the connector back on until it latches and both hands stand clear.
+
+Reach was checked with the YAM's IK in this layout: every grip and press pose solves exactly; the bay
+parts sit clear of the hands' paths (the left goes past the end of the radiator support, the right works
+between the air box and the leads).
 
 ## Reproduction
 
