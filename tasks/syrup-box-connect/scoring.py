@@ -14,9 +14,11 @@ OFF_MM = 30.0                         # the connector at least this far from whe
 CLEAR = 0.05                          # every pad point of both hands this far from the connector's surface
 CONN_RADIUS = 0.035                   # the connector with its barb fits in a sphere this big about its centre
 REST_LIN = 0.01                       # m/s: the connector at rest ...
-REST_ANG = 0.2                        # ... rad/s
+REST_ANG = 0.5                        # ... rad/s (the runner's ObjectState.resting default)
 PUSHED_IN_MM = 20.0                   # the new spout pushed further than this back into its carton
 DROP_Z = S.BASE - 0.020               # the connector below the shelf's deck: dropped
+TAUT = 0.95                           # the line's ends further apart than this share of its length: pulled taut
+LINE_LEN = S.line_rest_points()[1]
 
 
 def pad_points(robot):
@@ -43,6 +45,13 @@ def _field(state, key):
     return np.asarray(v, float)
 
 
+def _rot(q):
+    x, y, z, w = (float(v) for v in q)
+    return np.array([[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+                     [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+                     [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)]])
+
+
 def roll_deg(pose):
     """The connector's turn about its own axis, degrees (atan2 of its local z axis' y and z components)."""
     q = np.asarray(pose, float)[3:7]
@@ -59,6 +68,7 @@ class TrialScorer:
         self.pushed_in = False
         self.dropped = False
         self.was_off = False
+        self.taut = False
 
     def update(self, step, objects, root_poses, robot, mechanics=None, **_):
         if step != self.step + 1:
@@ -74,6 +84,10 @@ class TrialScorer:
             self.pushed_in = True
         if conn[2] < DROP_Z:
             self.dropped = True
+        barb = conn[:3] + _rot(conn[3:7]) @ np.asarray(S.BARB)
+        span = float(np.linalg.norm(barb - S.pump_inlet()))
+        if span > TAUT * LINE_LEN:
+            self.taut = True
         off = (not m["on_old"]) and 1000 * float(np.linalg.norm(conn[:3] - S.connector_pos(S.OLD_Y))) >= OFF_MM
         self.was_off = self.was_off or off or bool(m["engaged"])          # latched: wherever it is set down later
         score = 0.0
@@ -95,9 +109,12 @@ class TrialScorer:
             score = 1.0
         if self.pushed_in:
             score = min(score, 0.5)
+        if self.taut:
+            score = min(score, 0.5)
         if self.dropped:
             score = min(score, 0.25)
         return {"score": score, "success": score == 1.0, "off_empty": bool(off), "engaged": bool(m["engaged"]),
                 "locked": bool(m["locked"]), "spout_in_mm": round(spout_in, 1), "pushed_in": self.pushed_in,
                 "dropped": self.dropped, "clear": bool(clear), "hands_clear": bool(clear), "pad_gap_mm": round(1000 * gap, 1),
-                "at_rest": bool(still), "held_frames": self.held}
+                "at_rest": bool(still), "line_span_mm": round(1000 * span, 1), "line_taut": self.taut,
+                "held_frames": self.held}

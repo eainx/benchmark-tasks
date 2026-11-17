@@ -26,7 +26,7 @@ from pathlib import Path
 import numpy as np
 
 import meshlib as M
-from simkit import Anchor, Hinge, Part, Piece, Spring
+from simkit import Anchor, Hinge, Part, Piece, Spring, Tether
 
 TOP = 0.7475
 
@@ -70,6 +70,7 @@ CONN_L = 0.060
 COLLAR_R = 0.020
 COLLAR_L = 0.022
 ENGAGE = 0.024                       # the connector covers this much of the spout when on
+BARB = (-0.040, 0.030, 0.0)          # the elbow barb's tip in the connector's frame (the line's end)
 
 
 def spout_axis(y):
@@ -266,8 +267,7 @@ def new_spout_object():
 def connector_vmeshes():
     """QCD coupler, its centre at the origin, its mouth toward +x (onto a spout), barb and line out of -x."""
     h = CONN_L / 2
-    body = M.revolve([(0.0, -h - 0.016), (0.0045, -h - 0.016), (0.0060, -h - 0.010), (0.0045, -h - 0.008),
-                      (0.0060, -h - 0.004), (0.0080, -h), (CONN_R - 0.002, -h + 0.006), (CONN_R, -h + 0.010),
+    body = M.revolve([(0.0, -h), (0.0080, -h), (CONN_R - 0.002, -h + 0.006), (CONN_R, -h + 0.010),
                       (CONN_R, h - 0.002), (CONN_R - 0.0015, h), (SPOUT_R + 0.0015, h), (SPOUT_R + 0.0015, h - 0.020)],
                      n=48, axis="X")
     V = [_vm("body", body, BODY, "satin")]
@@ -283,9 +283,11 @@ def connector_vmeshes():
     for sy in (-1, 1):
         V.append(_vm(f"wing{sy}", M.rbox((0.014, 0.012, 0.004), 6), COLLAR, "satin",
                      offset=(h - COLLAR_L / 2 - 0.002, sy * (COLLAR_R + 0.005), 0.0)))
-    # the stainless hose clamp on the barb and the first bit of the line
-    V.append(_vm("clamp", M.revolve([(0.0072, 0.0), (0.0080, 0.0), (0.0080, 0.006), (0.0072, 0.006)], n=32, axis="X"),
-                 (0.78, 0.79, 0.80), "steel", offset=(-h - 0.014, 0.0, 0.0)))
+    # the 90-degree elbow barb out of its back (toward local +y) and the stainless clamp on it
+    elbow = M.bend([(-h + 0.004, 0.0, 0.0), (-h - 0.010, 0.0, 0.0), (-h - 0.010, BARB[1] - 0.004, 0.0)], 0.008, 8)
+    V.append(_vm("elbow", M.tube(elbow, 0.0055, 16), BODY, "satin"))
+    V.append(_vm("clamp", M.revolve([(0.0072, 0.0), (0.0080, 0.0), (0.0080, 0.006), (0.0072, 0.006)], n=32, axis="Y"),
+                 (0.78, 0.79, 0.80), "steel", offset=(-h - 0.010, BARB[1] - 0.014, 0.0)))
     return tuple(V)
 
 
@@ -297,13 +299,15 @@ def connector_colliders():
     of staves the fingers can grip."""
     h = CONN_L / 2
     P = [Piece("cylinder", (CONN_R, CONN_L - ENGAGE, CONN_R), (-ENGAGE / 2, 0.0, 0.0), axis="X")]
-    n = 10
-    rm = (SPOUT_R + 0.0025 + COLLAR_R) / 2
-    t = COLLAR_R - (SPOUT_R + 0.0025)
-    w = 2 * COLLAR_R * math.tan(math.pi / n) + 0.001
+    n = 12
+    r_in = SPOUT_R + 0.0025                                   # the mouth's bore: 2.5 mm of play round the spout
+    rm = (r_in + COLLAR_R) / 2
+    t = COLLAR_R - r_in
+    w = 2 * rm * math.tan(math.pi / n) + 0.0012
+    x0, x1 = h - ENGAGE, h - 0.001                            # the whole mouth, from the stop to its lip
     for k in range(n):
-        a = 2 * math.pi * k / n
-        P.append(Piece("box", (COLLAR_L - 0.004, w, t), (COLLAR_X, rm * math.sin(a), rm * math.cos(a)), rot=(-a, 0.0, 0.0)))
+        a = 2 * math.pi * (k + 0.5) / n
+        P.append(Piece("box", (x1 - x0, w, t), ((x0 + x1) / 2, rm * math.sin(a), rm * math.cos(a)), rot=(-a, 0.0, 0.0)))
     return _colliders(P)
 
 
@@ -320,7 +324,8 @@ def connector_object():
                 hinge2=Hinge(pivot=tuple(float(v) for v in connector_pos(NEW_Y)), axis="X", damping=0.002,
                              lower_deg=-1e6, upper_deg=1e6, parent="new_spout",
                              parent_pos=tuple(float(v) for v in spout_axis(NEW_Y)),
-                             local0=tuple(float(v) for v in on_new), local1=(0.0, 0.0, 0.0), enabled=False))
+                             local0=tuple(float(v) for v in on_new), local1=(0.0, 0.0, 0.0), enabled=False),
+                tether=connector_tether(), solver_iters=32)
 
 
 # -- chrome wire BIB rack shelf -------------------------------------------------------------------------------
@@ -432,42 +437,90 @@ def pump_inlet():
     return np.array([PUMP_C[0] - PUMP[0] / 2 - 0.016, PUMP_C[1], PUMP_C[2] - 0.030])
 
 
-LINE_N = 48
+# -- the syrup line: a chain of short capsule links (real-size 3/8 in tubing, about 1.2 m of slack) -------------
+N_LINKS = 24
+LINE_R = 0.00475                     # 9.5 mm OD
+LINK_MASS = 0.005                    # tubing with syrup in it, per ~50 mm
 
 
-def line_path(conn_pose):
-    """The syrup line's centreline from the connector's barb to the pump's inlet: a cubic Bezier with a fixed
-    number of samples (so the drawn tube can follow the connector)."""
-    p = np.asarray(conn_pose, float)
-    q = p[3:7]
-    x, y, z, w = q
-    R = np.array([[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
-                  [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
-                  [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)]])
-    ax = R[:, 0]
-    barb = p[:3] - ax * (CONN_L / 2 + 0.022)
+def _qmul(a, b):
+    """Quaternion product, (w, x, y, z)."""
+    w1, x1, y1, z1 = a
+    w2, x2, y2, z2 = b
+    return (w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2, w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2,
+            w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2, w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2)
+
+
+def _qinv(q):
+    return (q[0], -q[1], -q[2], -q[3])
+
+
+def _q_from_x(d):
+    """(w, x, y, z) turning +x onto the unit vector d."""
+    d = np.asarray(d, float) / np.linalg.norm(d)
+    c = float(np.dot([1.0, 0.0, 0.0], d))
+    if c < -0.999999:
+        return (0.0, 0.0, 0.0, 1.0)
+    ax = np.cross([1.0, 0.0, 0.0], d)
+    w = 1.0 + c
+    n = math.sqrt(w * w + float(np.dot(ax, ax)))
+    return (w / n, ax[0] / n, ax[1] / n, ax[2] / n)
+
+
+def line_rest_points():
+    """The line as it lies at the start: from the pump's inlet down to the bench, a loose loop on the bench,
+    up to the elbow barb of the connector on the empty carton's spout -- resampled into N_LINKS equal links."""
     pin = pump_inlet()
-    c1 = barb - ax * 0.10 + np.array([0.0, 0.0, 0.03])
-    c2 = pin + np.array([-0.18, -0.02, -0.12])
-    t = np.linspace(0.0, 1.0, LINE_N)[:, None]
-    return (1 - t) ** 3 * barb + 3 * (1 - t) ** 2 * t * c1 + 3 * (1 - t) * t ** 2 * c2 + t ** 3 * pin
+    barb = connector_pos(OLD_Y) + np.asarray(BARB)
+    z0 = TOP + LINE_R + 0.002
+    pts = [pin, pin + (-0.045, 0.0, 0.0), (pin[0] - 0.070, pin[1], pin[2] - 0.080), (0.420, 0.400, z0 + 0.03),
+           (0.360, 0.420, z0), (0.250, 0.440, z0), (0.190, 0.530, z0), (0.110, 0.520, z0), (0.090, 0.420, z0),
+           (0.120, 0.320, z0), (0.150, 0.250, z0),
+           (0.190, 0.235, z0 + 0.04), (barb[0], barb[1] + 0.045, barb[2] - 0.06), (barb[0], barb[1] + 0.020, barb[2]), barb]
+    path = M.bend([np.asarray(p, float) for p in pts], 0.03, 10)
+    seg = np.linalg.norm(np.diff(path, axis=0), axis=1)
+    cum = np.concatenate([[0.0], np.cumsum(seg)])
+    total = float(cum[-1])
+    out = []
+    for k in range(N_LINKS + 1):
+        s_ = total * k / N_LINKS
+        i = int(np.clip(np.searchsorted(cum, s_) - 1, 0, len(seg) - 1))
+        u = (s_ - cum[i]) / max(seg[i], 1e-12)
+        out.append(path[i] + u * (path[i + 1] - path[i]))
+    return np.asarray(out), total
 
 
-def line_mesh(conn_pose, origin):
-    return M.transform(M.tube(line_path(conn_pose), 0.0064, 12), None, -np.asarray(origin, float))
+def line_links():
+    """The chain's Parts: link k from rest point k to k+1, jointed to link k-1 (link 0 to the pump's inlet,
+    fixed). The connector is jointed to the last link (see connector_object)."""
+    pts, total = line_rest_points()
+    parts = []
+    qs = []
+    for k in range(N_LINKS):
+        a, b = pts[k], pts[k + 1]
+        L = float(np.linalg.norm(b - a))
+        q = _q_from_x(b - a)
+        qs.append(q)
+        if k == 0:
+            teth = Tether(parent=None, local0=tuple(float(v) for v in a), rot0=q, local1=(-L / 2, 0.0, 0.0))
+        else:
+            Lp = float(np.linalg.norm(pts[k] - pts[k - 1]))
+            teth = Tether(parent=f"line_{k - 1:02d}", local0=(Lp / 2, 0.0, 0.0), rot0=_qmul(_qinv(qs[k - 1]), q),
+                          local1=(-L / 2, 0.0, 0.0))
+        c = (a + b) / 2
+        parts.append(Part(f"line_{k:02d}", pos=tuple(float(v) for v in c), size=(LINE_R, max(L - 2 * LINE_R, 0.002), LINE_R),
+                          shape="capsule", axis="X", exact_z=True, mass=LINK_MASS, color=LINE, opacity=0.9,
+                          friction=(0.6, 0.5), restitution=0.0, contact_offset=0.002, tether=teth,
+                          quat=(q[1], q[2], q[3], q[0]), solver_iters=32, body_damping=(0.3, 0.5)))
+    return parts, qs, pts, total
 
 
-def line_object():
-    """The syrup line from the pump's inlet to the connector: drawn only (no collision); task.Dynamics redraws it
-    every step so it follows the connector."""
-    c = connector_pos(OLD_Y)
-    pose = (*c, 0.0, 0.0, 0.0, 1.0)
-    pos = (float(c[0]), float(c[1]), float(c[2]))
-    p, t = line_mesh(pose, pos)
-    V = [("line", p, t, LINE, "satin", 0.92)]
-    return Part("syrup_line", pos=pos, size=(0.004, 0.004, 0.004), exact_z=True, color=LINE,
-                pieces=(Piece("box", (0.004, 0.004, 0.004), (0.0, 0.0, 0.0), collide=False, hidden=True),),
-                hide_root=True, vmeshes=tuple(V), collision="none")
+def connector_tether():
+    """The connector's joint to the line's last link, at the elbow barb's tip."""
+    _, qs, pts, _ = line_links()
+    Ll = float(np.linalg.norm(pts[-1] - pts[-2]))
+    return Tether(parent=f"line_{N_LINKS - 1:02d}", local0=(Ll / 2, 0.0, 0.0), rot0=_qinv(qs[-1]),
+                  local1=tuple(float(v) for v in BARB), swing_deg=75.0, twist_deg=45.0)
 
 
 def quat_x_axis(q):

@@ -32,7 +32,7 @@ INSTRUCTION = json.loads((_here / "task.json").read_text())["instruction"]
 HZ = 20
 SCENE_ONLY = False
 MAX_STEPS = 80 if SCENE_ONLY else 1200
-OBJECT_NAMES = ("new_spout", "connector")
+OBJECT_NAMES = ("new_spout", "connector", "line_00", f"line_{S.N_LINKS - 1:02d}")
 
 DOWN = simkit.patch_demo()
 
@@ -48,7 +48,7 @@ def make_environment(embodiment, device, control_hz=HZ):
 
     objects = yscene.task_room("station", embodiment.rig.top_cam)
     specs = (S.rack_object(), S.board_object(), S.carton_object("new_carton", S.NEW_Y, False),
-             S.carton_object("old_carton", S.OLD_Y, True), S.new_spout_object(), S.connector_object(), S.line_object())
+             S.carton_object("old_carton", S.OLD_Y, True), S.new_spout_object(), *S.line_links()[0], S.connector_object())
     objects += [yscene.task_object(s) for s in specs]
     cfg = IsaacLabArenaEnvironment(name="yam_syrup_box_connect", scene=Scene(objects), embodiment=embodiment,
                                    env_cfg_callback=yscene.env_cfg_callback(control_hz))
@@ -93,25 +93,24 @@ class Dynamics:
     * Connector onto the new spout: a hinge to the spout, made at spawn and switched on when the connector is
       pushed on square (within 3 mm of the spout's axis, 4 mm of fully on, 8 deg). The spout itself rides on a
       sprung slide (the slack bag), so unless held it is pushed back into the carton.
-    * Locked: turned 85 deg clockwise on the new spout, the hinge's damping is made very large.
-    * The syrup line is redrawn every step from the pump to the connector's barb.
+    * Locked: turned 85 deg clockwise on the new spout, the hinge's damping is made very large (no target). The
+      line's twist can still ease it back slowly (about 12 deg over 10 s in the demo); it stays on and locked.
+    * The syrup line is a physical chain of 24 capsule links on D6 bend joints (pump end fixed, connector end jointed
+      at the elbow barb): it collides and drags; nothing about it is a rule.
     """
 
     def __init__(self, env):
         import omni.usd
         stage = omni.usd.get_context().get_stage()
         self.j = {}
-        self.line = None
         for prim in stage.Traverse():
             path = str(prim.GetPath())
             if path.endswith("/connector/hinge_joint"):
                 self.j["old"] = prim
             elif path.endswith("/connector/hinge2_joint"):
                 self.j["new"] = prim
-            elif path.endswith("/syrup_line/line"):
-                self.line = prim
-        if len(self.j) != 2 or self.line is None:
-            raise RuntimeError(f"joints/line not found: {sorted(self.j)} {self.line}")
+        if len(self.j) != 2:
+            raise RuntimeError(f"joints not found: {sorted(self.j)}")
         self.origin = np.asarray(S.connector_pos(S.OLD_Y), float)
 
     def _on(self, key, on):
@@ -146,17 +145,6 @@ class Dynamics:
         self.prev = r
         return self.unwrapped
 
-    def _redraw(self, pose):
-        from pxr import Gf, Vt
-        p, t = S.line_mesh(pose, self.origin)
-        n = np.zeros_like(p)
-        fn = np.cross(p[t[:, 1]] - p[t[:, 0]], p[t[:, 2]] - p[t[:, 0]])
-        for k in range(3):
-            np.add.at(n, t[:, k], fn)
-        n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
-        self.line.GetAttribute("points").Set(Vt.Vec3fArray([Gf.Vec3f(*map(float, v)) for v in p]))
-        self.line.GetAttribute("normals").Set(Vt.Vec3fArray([Gf.Vec3f(*map(float, v)) for v in n]))
-
     def after_step(self, step, objects, poses, robot):
         conn = np.asarray(poses["connector"], float)
         spout = np.asarray(poses["new_spout"], float)
@@ -183,7 +171,6 @@ class Dynamics:
             if roll - self.roll_new0 >= LOCK_DEG:
                 self._damp("new", 1e4)
                 self.locked = True
-        self._redraw(conn)
         return {"on_old": self.on_old, "engaged": self.engaged, "locked": self.locked,
                 "turn_old_deg": round(roll - self.roll0, 1) if self.on_old else None,
                 "turn_new_deg": round(roll - self.roll_new0, 1) if self.roll_new0 is not None else None,
@@ -205,7 +192,9 @@ def make_scorer():
 # Right hand: holds the new spout's flange from above (fingers closing front-to-back across it) while the
 # connector goes on, then lets go.
 F_SPAN = -0.012                       # jaws opened 24 mm: either side of the 4 mm flange, clear of the carton face
-SAG = 0.004                           # the connector hangs ~4 mm low in the level grip: aim that much higher
+PUSH = 0.008                          # push past the seat: the stop takes it, the line's pull and grip slip are made up
+LINE_PULL = 0.005                     # the line's weight draws the held connector ~5 mm toward the pump: aim off by that
+SAG = 0.006                           # the connector hangs ~4 mm low in the level grip: aim that much higher
 REST = {"left": (0.14, 0.20, S.TOP + 0.24), "right": (0.14, -0.20, S.TOP + 0.24)}
 X = np.array([1.0, 0.0, 0.0])
 
@@ -233,7 +222,7 @@ def demo():
         return {side: [_w(1.5, REST[side], FINGER_OPEN, "look", DOWN), _w(MAX_STEPS / HZ, REST[side], FINGER_OPEN, "hold", DOWN)]
                 for side in ("left", "right")}
     old = S.connector_pos(S.OLD_Y) + X * S.COLLAR_X - X * PAD_TIP          # TCP for the collar on the empty spout
-    new = S.connector_pos(S.NEW_Y) + X * S.COLLAR_X - X * PAD_TIP + np.array([0.0, 0.0, SAG])   # ... on the new spout
+    new = S.connector_pos(S.NEW_Y) + X * S.COLLAR_X - X * PAD_TIP + np.array([0.0, -LINE_PULL, SAG])   # ... on the new spout
     up = np.array([0.0, 0.0, 1.0])
     left = [
         _w(1.5, REST["left"], FINGER_OPEN, "look", DOWN),
@@ -246,9 +235,10 @@ def demo():
         _w(2.0, old - X * 0.09 + up * 0.04 + np.array([0.0, -0.165, 0.0]), FINGER_CLOSED, "carry it over", level(0)),
         _w(2.0, new - X * 0.05, FINGER_CLOSED, "line it up with the new spout", level(0)),
         _w(1.0, new - X * 0.05, FINGER_CLOSED, "steady", level(0)),
-        _w(2.0, new + X * 0.002, FINGER_CLOSED, "push it on", level(0)),
-        _w(1.2, new + X * 0.002, FINGER_CLOSED, "turn it", level(-45)),
-        _w(1.2, new + X * 0.002, FINGER_CLOSED, "quarter turn clockwise: locked", level(-90)),
+        _w(2.0, new + X * PUSH, FINGER_CLOSED, "push it on, through the line's pull", level(0)),
+        _w(1.0, new + X * PUSH, FINGER_CLOSED, "seated", level(0)),
+        _w(1.2, new + X * PUSH, FINGER_CLOSED, "turn it", level(-45)),
+        _w(1.2, new + X * PUSH, FINGER_CLOSED, "quarter turn clockwise: locked", level(-90)),
         _w(0.8, new, FINGER_OPEN, "let go", level(-90)),
         _w(1.5, new - X * 0.08, FINGER_OPEN, "back off", level(-90)),
         _w(2.0, REST["left"], FINGER_OPEN, "rest", DOWN),

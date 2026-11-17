@@ -223,6 +223,23 @@ class Hinge:
 
 
 @dataclass(frozen=True)
+class Tether:
+    """A D6 joint to ``parent`` (another task object, or the world when None): no translation, bending and
+    twisting within cone limits against a spring-damper drive (a flexible line's bend stiffness).
+    ``local0``/``rot0`` give the joint frame in the parent's frame (world frame when no parent), ``local1``
+    in this body's frame; rotations are (w, x, y, z)."""
+
+    parent: str | None = None
+    local0: tuple = (0.0, 0.0, 0.0)
+    rot0: tuple = (1.0, 0.0, 0.0, 0.0)
+    local1: tuple = (0.0, 0.0, 0.0)
+    swing_deg: float = 60.0
+    twist_deg: float = 30.0
+    stiffness: float = 0.0005          # N m / deg toward the rest bend
+    damping: float = 0.00005           # N m s / deg
+
+
+@dataclass(frozen=True)
 class Part(Box):
     """A task-file object with a real material, a real collider and, optionally, several pieces.
 
@@ -264,6 +281,10 @@ class Part(Box):
     max_depenetration: float | None = None
     hinge: Hinge | None = None  # free parts only: turn about a world axis, damped
     hinge2: Hinge | None = None  # a second revolute joint (e.g. made at spawn, switched on later)
+    tether: Tether | None = None  # a D6 bend joint (a link of a flexible line)
+    quat: tuple | None = None  # spawn orientation (x, y, z, w); overrides yaw
+    solver_iters: int | None = None  # position iterations for this body (chains need more)
+    body_damping: tuple | None = None  # (linear, angular) body damping
     # Detailed visual meshes (no collision): (name, points (N, 3) in the Part's frame, triangles (M, 3),
     # colour, material key or None, opacity). The colliders stay simple primitives, hidden inside.
     vmeshes: tuple = field(default=())
@@ -803,6 +824,35 @@ def _add_hinge(prim, spec: Part, h=None, name="hinge_joint") -> None:
         PhysxSchema.PhysxJointAPI.Apply(joint.GetPrim()).CreateJointFrictionAttr(float(h.friction))
 
 
+def _add_tether(prim, spec: Part) -> None:
+    """A D6 joint: translation locked, rotations limited and sprung toward the rest pose."""
+    from pxr import Gf, Sdf, UsdPhysics
+
+    t = spec.tether
+    joint = UsdPhysics.Joint.Define(prim.GetStage(), f"{prim.GetPath()}/tether_joint")
+    joint.CreateBody1Rel().SetTargets([Sdf.Path(str(prim.GetPath()))])
+    if t.parent is not None:
+        joint.CreateBody0Rel().SetTargets([prim.GetPath().GetParentPath().AppendChild(t.parent)])
+    joint.CreateLocalPos0Attr(Gf.Vec3f(*(float(v) for v in t.local0)))
+    joint.CreateLocalRot0Attr(Gf.Quatf(*(float(v) for v in t.rot0)))
+    joint.CreateLocalPos1Attr(Gf.Vec3f(*(float(v) for v in t.local1)))
+    joint.CreateLocalRot1Attr(Gf.Quatf(1.0, 0.0, 0.0, 0.0))
+    jp = joint.GetPrim()
+    for ax in ("transX", "transY", "transZ"):
+        lim = UsdPhysics.LimitAPI.Apply(jp, ax)
+        lim.CreateLowAttr(1.0)
+        lim.CreateHighAttr(-1.0)                      # low > high: locked
+    for ax, deg in (("rotX", t.twist_deg), ("rotY", t.swing_deg), ("rotZ", t.swing_deg)):
+        lim = UsdPhysics.LimitAPI.Apply(jp, ax)
+        lim.CreateLowAttr(-float(deg))
+        lim.CreateHighAttr(float(deg))
+        drv = UsdPhysics.DriveAPI.Apply(jp, ax)
+        drv.CreateTypeAttr("force")
+        drv.CreateStiffnessAttr(float(t.stiffness))
+        drv.CreateDampingAttr(float(t.damping))
+        drv.CreateTargetPositionAttr(0.0)
+
+
 def _add_anchor(prim, spec: Part) -> None:
     """Pin the body to the world with a fixed joint that breaks under load."""
     from pxr import Gf, PhysxSchema, Sdf, UsdPhysics
@@ -870,6 +920,8 @@ def _piece_spawner(spec: Part):
             _add_hinge(prim, spec)
         if spec.hinge2 is not None:
             _add_hinge(prim, spec, spec.hinge2, "hinge2_joint")
+        if spec.tether is not None:
+            _add_tether(prim, spec)
         return prim
 
     return spawn
@@ -963,12 +1015,20 @@ def _build_part(spec: Part):
     if collision is not None:
         body["collision_props"] = collision
     if spec.free:
-        body["rigid_props"] = (PhysxRigidBodyPropertiesCfg(max_depenetration_velocity=float(spec.max_depenetration))
-                               if spec.max_depenetration is not None else PhysxRigidBodyPropertiesCfg())
+        rp = {}
+        if spec.max_depenetration is not None:
+            rp["max_depenetration_velocity"] = float(spec.max_depenetration)
+        if spec.solver_iters is not None:
+            rp["solver_position_iteration_count"] = int(spec.solver_iters)
+            rp["solver_velocity_iteration_count"] = 4
+        if spec.body_damping is not None:
+            rp["linear_damping"] = float(spec.body_damping[0])
+            rp["angular_damping"] = float(spec.body_damping[1])
+        body["rigid_props"] = PhysxRigidBodyPropertiesCfg(**rp)
         body["mass_props"] = sim_utils.MassPropertiesCfg(mass=spec.mass)
     cfg = _mesh_cfg(sim_utils, spec.shape, spec.size, spec.axis, **body)
     if (spec.pieces or spec.spring is not None or spec.com is not None or spec.anchor is not None
-            or spec.hinge is not None or spec.hinge2 is not None or spec.vmeshes or spec.hide_root):
+            or spec.hinge is not None or spec.hinge2 is not None or spec.tether is not None or spec.vmeshes or spec.hide_root):
         cfg.func = _piece_spawner(spec)
     return Object(
         name=spec.name,
@@ -976,7 +1036,8 @@ def _build_part(spec: Part):
         spawner_cfg=cfg,
         initial_pose=Pose(
             position_xyz=tuple(spec.pos),
-            rotation_xyzw=(0.0, 0.0, math.sin(spec.yaw / 2), math.cos(spec.yaw / 2)),
+            rotation_xyzw=(tuple(float(v) for v in spec.quat) if spec.quat is not None
+                           else (0.0, 0.0, math.sin(spec.yaw / 2), math.cos(spec.yaw / 2))),
         ),
     )
 
