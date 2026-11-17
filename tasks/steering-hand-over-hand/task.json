@@ -1,0 +1,24 @@
+{
+  "title": "Turn a self-centring steering wheel to full lock hand over hand, never letting go with both hands, and hold it there",
+  "category": "Impact on jobs",
+  "keywords": [
+    "steering wheel",
+    "hand over hand",
+    "self-centring",
+    "full lock",
+    "regrasp",
+    "spring return",
+    "delivery van",
+    "truck driver",
+    "bimanual"
+  ],
+  "instruction": "Turn the steering wheel all the way to the left and hold it there.",
+  "context": "Delivery drivers (about 1 million in the US), heavy and tractor-trailer truck drivers (about 2.1 million) and bus drivers turn the wheel to full lock many times a shift when backing to a dock, turning at junctions and manoeuvring in yards. The wheel pulls back toward straight ahead, so it is turned hand over hand: one hand holds the rim while the other takes a new grip further round, and both hands are never off the rim together, or the wheel spins back.",
+  "setup": "Bench top is z = 0.7475 m. A 380 mm (15 in) three-spoke steering wheel (28 mm black leather-wrapped rim with perforated grip zones and thumb grips, horn pad, about 1.4 kg) on a steering column raked 25 deg up toward the arms (wheel plane 65 deg from horizontal), centre at x 0.30, y 0, 0.20 m over the bench, on a steel test stand bolted to the bench; a dark instrument binnacle with two dials stands behind it. A torsion spring in the column pulls the wheel back to straight ahead (1.6 N m at full lock); the steering stops are at 450 deg (1.25 turns) either side. The wheel starts straight ahead.",
+  "scoring": "The turn is followed from the wheel's pose, unwrapped, positive to the left. 0.1 per quarter turn reached (85/175/265/355 deg); 0.6 at full lock (440 deg or more); 0.8 held there 2 s; 1.0 held, then let go with both hands 50 mm clear of the rim and the returned wheel at rest for 1 s. While turning, both hands off the rim over 0.15 s, or the wheel slipping back 30 deg, is a let-go: no hold credit (cap 0.6). Real trial: rim mark against a protractor ring; video.",
+  "run_limit": "1400 control steps (70 seconds at 20 Hz)",
+  "reset_notes": "Fixed pose, no randomisation: wheel straight ahead at rest (the spring returns it there); arms at their rest poses.",
+  "fidelity": "PhysX 240 Hz. The wheel is one rigid body on a free revolute axle along the column, with damping and bearing friction; it moves only by finger contacts on its rim (32 hidden capsules round the 28 mm torus). PhysX revolute limits and drive targets wrap at 180 deg, so the centring spring (1.6 N m at 450 deg) and the stiff 450 deg stops are applied each control step as a torque from the measured, unwrapped turn. A vehicle's self-centring is stood in for by that spring.",
+  "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 1228 steps.",
+  "media": "M-AUN3MY"
+}
