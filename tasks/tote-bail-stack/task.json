@@ -1,0 +1,24 @@
+{
+  "title": "Stack a full bale-arm tote on another: swing the lower tote's two wire bails in, then lower the full tote onto them",
+  "category": "Impact on jobs",
+  "keywords": [
+    "bale arm crate",
+    "bail arm tote",
+    "stack nest",
+    "wire bail",
+    "stacking",
+    "two-handed lift",
+    "warehouse",
+    "bakery dispatch",
+    "bimanual"
+  ],
+  "instruction": "Stack the full tote on top of the other full tote.",
+  "context": "Stack-nest bale-arm crates carry bread, produce, meat and small parts through bakeries, distribution centres and factories; stockers and order fillers (about 2.8 million in the US) and hand laborers and freight movers (about 3 million) stack them many times a shift. The crates nest when empty, so before a full crate goes on top of another, both wire bails of the lower crate are swung in across its rim; the full crate is then lowered level onto the bails. A crate set down on a bail left out drops into the one below and crushes its load.",
+  "setup": "Bench top is z = 0.7475 m. Two blue 400 x 300 x 131 mm 12 L stack-nest bale-arm crates (walls tapering to a 330 x 230 mm base under a rim lip, a 120 x 33 mm hand hole under an 18 mm thick grip bar in each end wall, a label holder on the near long wall, about 0.6 kg empty) stand with their long sides toward the arms. Tote A, centred at x 0.48, y 0, holds six taped kraft cartons (100 x 100 x 90 mm, 0.5 kg each) reaching 35 mm under its rim; its two zinc-plated 6 mm steel wire bails (312 mm across, legs 70 mm from pivot bosses at the ends of the long walls, 0.11 kg each) hang straight down outside its end walls. Tote B, centred at x 0.11, y 0, holds six light taped kraft cartons (100 x 100 x 70 mm, 0.06 kg each), 0.96 kg in all, its bails hanging out.",
+  "scoring": "Milestones latch: 0.15 for each of A's bails swung in (bar lying across A's rim, leg 160-180 deg over the outward horizontal); 0.10 for B lifted 20 mm clear of the bench within 20 deg of level; 0.20 for B standing on the bails (its underside 131-145 mm over A's, within 3 deg of level, both bails in). 1.0 when, at the end, B stands so, both hands are 50 mm clear of both totes and totes and bails are still (under 1 cm/s and 0.2 rad/s) for 1 s. B nested in A (underside under 120 mm over A's, on A's cartons) gets no lift or stack credit. A tote off the bench or tipped past 30 deg scores 0. Real trial: video, and B's underside height over A's with a tape measure (137 mm stacked, 96 mm nested).",
+  "run_limit": "1200 control steps (60 seconds at 20 Hz)",
+  "reset_notes": "Fixed poses, no randomisation: both totes full and upright, tote A's bails hanging straight down outside its end walls, tote B's bails hanging out; arms at their rest poses. Real reset: lift B off, swing A's bails out, put B back at its mark.",
+  "fidelity": "PhysX 240 Hz. Rigid crates with detailed meshes over simple colliders (tapered walls, rim lip, end grip bars over the hand holes, rim notches); the cartons are part of each crate's body. A's bails are free rigid wire bodies on revolute joints at their pivots that still collide with their crate, so they hang, swing and lie on the rim by contact alone; B rests on them by contact. B's bails are drawn hanging out, part of its body. Nothing is moved or held by a rule.",
+  "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 638 steps.",
+  "media": "M-PYFJBR"
+}
