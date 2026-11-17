@@ -19,5 +19,5 @@
   "reset_notes": "Fixed starting poses, no randomisation: vacuum square on its wheels, old bag seated in the holder, lid open on its stop and unlatched, new bag standing in its carton, wastebasket empty. The full bag is reusable: its bran stays sealed in the inner bag; refold it to 127 x 200 x 117 mm and re-seat it (about 2 minutes).",
   "fidelity": "PhysX 240 Hz. The vacuum is one free rigid body; its wheels are welded on and meet the bench with friction 0.15 (rolling resistance). The lid turns on a damped hinge, its weight toward its front; the latch is a rule: shut within 2 degrees and pressed within 60 mm of its button, the hinge is held by damping. Each bag is one rigid body (no sag, no dust); the collar is held only by the channels and stop. Hose and wand are drawn; motor and suction are not simulated.",
   "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 1047 steps.",
-  "media": ""
+  "media": "M-GPKVP7"
 }
