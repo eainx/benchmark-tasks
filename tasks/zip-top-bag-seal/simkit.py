@@ -113,6 +113,7 @@ class Piece:
     opacity: float | None = None
     emissive: tuple[float, float, float] | None = None
     collide: bool = True  # False: visual trim only
+    hidden: bool = False  # True: a collider only, not rendered (under visual pieces drawn separately)
     # None: share the Part's physics material. A vessel wants two: the outside has to be grippy
     # enough for the jaws, the inside slippery enough that its contents run out when it is tipped.
     friction: tuple[float, float] | None = None
@@ -254,6 +255,9 @@ class Part(Box):
     # granular bodies squeezed between a tool and a wall otherwise get flung away.
     max_depenetration: float | None = None
     hinge: Hinge | None = None  # free parts only: turn about a world axis, damped
+    # PhysX contact reporting on this body (PhysxContactReportAPI, threshold 0), set at spawn so the task can
+    # read the real contact forces and points on it through a rigid contact view
+    contact_report: bool = False
 
     def _check(self) -> None:
         super()._check()
@@ -820,6 +824,8 @@ def _piece_spawner(spec: Part):
                 translation=tuple(piece.offset),
                 orientation=_euler_xyzw(piece.rot),
             )
+            if piece.hidden:
+                _hide(f"{prim_path}/piece{i}")
         if spec.com is not None:
             from pxr import Gf, UsdPhysics
 
@@ -832,9 +838,25 @@ def _piece_spawner(spec: Part):
             _add_anchor(prim, spec)
         if spec.hinge is not None:
             _add_hinge(prim, spec)
+        if spec.contact_report:
+            from pxr import PhysxSchema
+
+            api = PhysxSchema.PhysxContactReportAPI.Apply(prim)
+            api.CreateThresholdAttr().Set(0.0)
         return prim
 
     return spawn
+
+
+def _hide(path: str) -> None:
+    """Keep a collider out of the render (made invisible): PhysX still collides with it."""
+    import omni.usd
+    from pxr import UsdGeom
+
+    stage = omni.usd.get_context().get_stage()
+    prim = stage.GetPrimAtPath(path)
+    if prim and prim.IsValid():
+        UsdGeom.Imageable(prim).MakeInvisible()
 
 
 def _build_part(spec: Part):
@@ -857,7 +879,7 @@ def _build_part(spec: Part):
         body["mass_props"] = sim_utils.MassPropertiesCfg(mass=spec.mass)
     cfg = _mesh_cfg(sim_utils, spec.shape, spec.size, spec.axis, **body)
     if (spec.pieces or spec.spring is not None or spec.com is not None or spec.anchor is not None
-            or spec.hinge is not None):
+            or spec.hinge is not None or spec.contact_report):
         cfg.func = _piece_spawner(spec)
     return Object(
         name=spec.name,

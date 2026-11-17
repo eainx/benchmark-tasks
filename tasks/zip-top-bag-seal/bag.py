@@ -181,22 +181,33 @@ def bag_object() -> Part:
     for k in range(N_CELLS):
         TRACK_PIECES["groove"].append(len(pieces))
         add(Piece("box", (TRACK_W, CELL - 0.0003, PROFILE_T), rel(TRACK_X, cell_y(k), z0 + PROFILE_T / 2),
-                  color=YELLOW, friction=TRACK_FRICTION))
+                  color=YELLOW, collide=False))
     for k in range(N_CELLS):
         TRACK_PIECES["rib"].append(len(pieces))
         add(Piece("box", (TRACK_W, CELL - 0.0003, PROFILE_T), rel(TRACK_X, cell_y(k), z0 + PROFILE_T + GAPE + PROFILE_T / 2),
                   color=BLUE, collide=False))
     for k in range(N_CELLS):
         TRACK_PIECES["sealed"].append(len(pieces))
-        add(Piece("box", (TRACK_W + 0.0006, CELL - 0.0003, CLOSED_T + 0.0004), rel(TRACK_X, cell_y(k), z0 + CLOSED_T / 2),
-                  color=GREEN, collide=False))
+        add(Piece("box", (TRACK_W + 0.0006, CELL - 0.0003, 2 * PROFILE_T + GAPE + 0.0004), rel(TRACK_X, cell_y(k), z0 + (2 * PROFILE_T + GAPE) / 2),
+                  color=GREEN, collide=False))         # drawn over the rib and groove where pressed home
+    # the track's colliders: the groove and the rib profiles, each as overlapping 13 mm segments (2 mm
+    # overlaps, coplanar, so a pad slides along them without catching on seams; one 177 mm box would be
+    # too long and thin for PhysX's convex cooking). Each sits 0.1 mm inside the cells drawn over it, and a
+    # closed cell's green strip encloses both; the lower pad presses the groove, the upper pad the rib.
+    TRACK_PIECES["strips"] = []
+    for z in (z0 + PROFILE_T / 2, z0 + PROFILE_T + GAPE + PROFILE_T / 2):
+        for k in range(N_CELLS):
+            TRACK_PIECES["strips"].append(len(pieces))
+            add(Piece("box", (TRACK_W - 0.0002, CELL + 0.002, PROFILE_T - 0.0002), rel(TRACK_X, cell_y(k), z),
+                      color=YELLOW if z < z0 + PROFILE_T else BLUE, friction=TRACK_FRICTION))
     # the flanges: the films' 8 mm free edges past the track, the top one turned up at the open mouth
     fl = TRACK_X - TRACK_W / 2 - MOUTH_X
     add(Piece("box", (fl, BAG_W - 0.004, 0.0010), rel(MOUTH_X + fl / 2, BAG_Y, z0 + 0.0005), color=FILM_EDGE))
     add(Piece("box", (fl, BAG_W - 0.004, 0.0006), rel(MOUTH_X + fl / 2, BAG_Y, z0 + 2 * PROFILE_T + GAPE + 0.0012),
               rot=(0.0, 0.30, 0.0), color=FILM, collide=False))
     return Part("bag", pos=(ROOT_X, BAG_Y, ROOT_Z), size=(plen, BAG_W - 0.010, 0.001), exact_z=True, mass=BAG_MASS,
-                color=FILM_EDGE, friction=(0.40, 0.32), restitution=0.05, contact_offset=0.002, pieces=tuple(pieces))
+                color=FILM_EDGE, friction=(0.40, 0.32), restitution=0.05, contact_offset=0.002, pieces=tuple(pieces),
+                contact_report=True)
 
 
 def scraps_object() -> Part:

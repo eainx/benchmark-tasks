@@ -5,8 +5,9 @@
 A filled 1-quart zip-top freezer bag of chopped vegetables lies on a butcher block, its press-to-seal
 track open and standing out past the block's near edge. A press-to-seal track has no slider: it
 closes only where it is squeezed between finger and thumb. One hand holds the mouth's corner; the other
-pinches the track beside it and slides along to the far corner, pressing the rib into its groove the
-whole way; then both let go and stand clear.
+pinches the track shut along to the far corner, pressing the rib into its groove the whole way with a
+firm pinch (each cell closes only under a real two-pad pinch of at least 10 N per pad); then both let go
+and stand clear.
 
 ## Why it matters
 
@@ -45,6 +46,8 @@ The track is scored in 16 cells of 11 mm; a closed cell stays closed (a latched 
 A spill (any loose carrot coin out of the bag) or the bag falling off the block, at any time, including
 after the track is closed, scores 0. Every quantity is measurable in a real trial: the green (closed)
 length of a colour-change track, whether any piece has come out of the bag, and where the hands end up.
+In a real trial, a closed length is checked by eye on a colour-change track (or by feel, the rib seated
+in its groove) and measured with a ruler; the score's cells are 11 mm lengths of it.
 
 ## Simulation notes
 
@@ -53,24 +56,37 @@ length of a colour-change track, whether any piece has come out of the bag, and 
   its edges (rolls round the load, seams) and the light catching it in bands, and the load shows as it is.
   The top film over the load collides (its sheen bands 16 mm apart, its side and bottom walls), and six
   carrot coins lie loose under it: those are what a spill would lose.
-- **Closing rule:** a track cell closes where a hand's pads are squeezed shut across it to the
-  pressed-home 2.6 mm to within 1 mm (open, the profiles stand 6.2 mm), with the track between the pads and the fingers' closing line
-  within 30 degrees of the films' normal (the rib pressed square onto its groove). A closed cell stays
-  closed and reads green. The rib does not physically snap into the groove.
-- **Drag:** the pads touch the groove profile itself (LDPE, friction 0.15), so a clamped pinch slid
-  along the track pulls the bag by friction; the bag slides on the block (friction 0.4). Holding the
-  corner keeps it still physically, not by a rule. In a development run where the holding hand
-  missed the corner, the same slide dragged the bag 33 mm and turned it 23 degrees; held, it moved
-  2.3 mm and turned 0.5 degrees.
+- **Closing (from PhysX contacts):** a rigid contact view on the bag, filtered to the four finger-pad
+  links (each hand's `tip_left` and `tip_right`), gives each pad's real contact force on the bag and the
+  points where it touches. A track cell is pressed where one hand's two pads both press on the track
+  (their contact points within 4.5 mm of the track's centreline and at its height), each with at least
+  10 N, their forces opposed (pinching it from above and below), over that cell's length. A cell pinched
+  that hard for 0.15 s (3 control steps) snaps shut, stays shut and reads green. A hand passing beside
+  the track, touching it lightly or pushing it from one side closes nothing: there is no position or
+  jaw-gap trigger. 10 N per pad is a firm finger-and-thumb pinch of the kind that snaps a freezer-bag
+  rib home; the YAM gripper squeezes the track at about 17 N per pad in the demo (its fingers commanded
+  fully closed and stopping on the profile), well inside its roughly 50 N capability. The rib's 3 mm
+  travel into its groove is not simulated (the pads pinch the rib and groove profiles as they stand).
+- **Track colliders:** the rib and the groove profiles collide as overlapping 13 mm segments (no seams
+  for a pad to catch on), each 0.1 mm inside the drawn profile; the lower pad presses the groove, the
+  upper pad the rib, 3 mm above it as left open.
+- **Drag:** the pads grip the profiles (LDPE, friction 0.15 against the pads' rubber), so a pinch pulled
+  along the track drags the bag by friction; the bag slides on the block (friction 0.4). Holding the
+  corner keeps it still physically, not by a rule; even held, a pinch dragged along at sealing force
+  pulled the corner out of the holding hand in development, so the demo pinches step by step.
 
 ## Demo
 
 `task.py` contains a scripted waypoint demo. The left hand comes in along the track from the left
-side, pitched 25 degrees down, and pinches the mouth's left corner hard, holding it. The right hand
-comes in across the mouth from in front, pitched 25 degrees down, pinches the track beside the held
-corner and slides along it to the right corner over 8 s, presses the far corner home and draws back.
-The left lets go of its corner; the right comes back and presses home the bit of track the left hand
-was holding, and both stand clear.
+side, pitched 25 degrees down, and pinches the mouth's left corner hard (about 22-25 N per pad),
+holding it. The right hand comes in across the mouth from in front, pitched 25 degrees down, and
+presses the track shut a little at a time toward the right corner: 20 pinches 7.3 mm apart, each
+pad pressing the track at about 15 N (fingers commanded closed, stopping on the 6.2 mm rib-over-groove
+stack) for 0.8 s, easing off to 10 mm between pinches to step along. (A pinch dragged along the track at
+sealing force pulled the held corner out of the other hand in development: the YAM arms are compliant,
+and the bag slid 110 mm.) It presses the far corner home and draws back. The left lets go of its
+corner; the right comes back and pinches home the track the left hand was holding, and both stand
+clear.
 
 ## Reproduction
 
@@ -104,7 +120,7 @@ trajectory and checks it against result.json.
 
 ## Files
 
-`task.py` (scene, the track's closing rule, scripted demo), `scoring.py` (stateful scorer), `bag.py`
+`task.py` (scene, the track's contact-force closing, scripted demo), `scoring.py` (stateful scorer), `bag.py`
 (geometry and measurements of the bag, its loose coins, the block and set dressing, and the finger pads), `simkit.py` (compound rigid parts,
 joints and the spline demo controller). No third-party assets. No hardware validation has been
 performed.
