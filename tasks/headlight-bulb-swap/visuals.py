@@ -37,120 +37,80 @@ def _shift(vms, d):
 
 # -- headlamp --------------------------------------------------------------------------------------
 def housing_vmeshes(part_pos):
-    """World-frame meshes, returned in the housing Part's frame."""
-    bot = H.BOT_Z
-    xc = H.LAMP_X
+    """The Camry-type lamp, back toward the arms: a black PP shell lofted along its width (swept and
+    narrowing toward the fender), the clear lens over its front with chrome reflectors behind it, the two
+    ribbed port cans on its back (low beam open, high beam with its rubber cover), top bolt flanges, the
+    outboard ear, beam adjusters and the main plug. World-frame meshes, returned in the Part's frame."""
     V = []
-    # shell: tapered toward the back and swept in on the outboard (+x) side, bottoms level. Over its front
-    # 115 mm the outboard corner is lens: the clear lens wraps round that corner, as on most cars.
-    y1 = H.LENS_Y - 0.115
-    secs = []
-    for y, w, h, e, du in ((H.BACK_Y, 0.300, 0.140, 4.0, -0.020), (H.BACK_Y + 0.04, 0.322, 0.155, 4.5, -0.016),
-                           (H.BACK_Y + 0.10, 0.352, 0.172, 5.0, -0.010), (y1, 0.384, 0.188, 6.0, -0.004)):
-        secs.append((y, w, h, e, xc + du, bot + h / 2))
-    V.append(_vm("shell", M.loft(secs, axis="Y", n=64), HOUSING, "matte"))
-    V.append(_vm("shell_front", M.loft([(y1 - 0.001, 0.300, 0.190, 6.0, xc - 0.046, bot + 0.095),
-                                        (H.LENS_Y - 0.030, 0.304, 0.198, 7.0, xc - 0.048, bot + 0.099)], axis="Y", n=64),
-                 HOUSING, "matte"))
-    V.append(_vm("seam", M.loft([(y1 - 0.006, 0.392, 0.194, 6.0, xc - 0.002, bot + 0.097),
-                                  (y1 - 0.001, 0.392, 0.194, 6.0, xc - 0.002, bot + 0.097)], axis="Y", n=64), SEAM))
-    V.append(_vm("lens", M.loft([(y1, 0.396, 0.196, 6.0, xc, bot + 0.098),
-                                  (H.LENS_Y - 0.040, 0.400, 0.200, 7.0, xc, bot + 0.100),
-                                  (H.LENS_Y - 0.010, 0.394, 0.194, 6.5, xc, bot + 0.100),
-                                  (H.LENS_Y, 0.374, 0.178, 5.0, xc, bot + 0.100)], axis="Y", n=64),
-                 LENS, "acrylic", 0.22))
-    # inside the corner wrap: a chrome turn-signal reflector with its amber bulb, a chrome trim strip
-    xw = xc + 0.104
-    prof = [(0.046 - 0.036 * k / 7, 0.030 * (1 - ((0.046 - 0.036 * k / 7) / 0.046) ** 2)) for k in range(8)]
-    V.append(_vm("turn_reflector", M.revolve(prof, n=48, axis="X"), CHROME, "aluminium",
-                 offset=(xw, H.LENS_Y - 0.062, bot + 0.110)))
-    V.append(_vm("turn_bulb", M.revolve([(0.0, 0.0), (0.006, 0.002), (0.0065, 0.010), (0.004, 0.016), (0.0, 0.017)],
-                                        n=24, axis="X"), AMBER, "acrylic", 0.9, offset=(xw + 0.006, H.LENS_Y - 0.062,
-                                                                                         bot + 0.110)))
-    V.append(_vm("drl_strip", M.rbox((0.004, 0.090, 0.010), 6, axis="X"), CHROME, "steel",
-                 offset=(xw + 0.004, H.LENS_Y - 0.060, bot + 0.040)))
-    V.append(_vm("wrap_bezel", M.rbox((0.003, 0.100, 0.160), 6, axis="X"), (0.13, 0.13, 0.14), "satin",
-                 offset=(xw - 0.002, H.LENS_Y - 0.064, bot + 0.098)))
-    # moulded stiffening ribs over the top and down the back
-    for k in range(6):
-        V.append(_vm(f"top_rib{k}", M.rbox((0.270 - 0.012 * k, 0.004, 0.005), 4), HOUSING, "matte",
-                     offset=(xc - 0.020, H.BACK_Y + 0.040 + 0.030 * k, bot + 0.156 + 0.006 * k + 0.002)))
-    for k, x in enumerate((xc - 0.140, xc, xc + 0.105)):                # between and beside the port cans
-        V.append(_vm(f"back_rib{k}", M.rbox((0.004, 0.006, 0.110), 4, axis="Y"), HOUSING, "matte",
-                     offset=(x, H.BACK_Y - 0.002, bot + 0.068)))
-    # aluminised reflector bowls (paraboloids) with a black inner bezel between them, seen through it
-    for i, x in enumerate((H.PORT_X, H.HIGH_X)):
-        prof = []
-        for k in range(9):
-            r = 0.068 - 0.054 * k / 8
-            prof.append((r, -0.050 * (1 - (r / 0.068) ** 2)))
-        bowl = M.revolve(prof, n=48, axis="Y")
-        V.append(_vm(f"reflector{i}", bowl, CHROME, "aluminium", offset=(x, H.LENS_Y - 0.032, H.PORT_Z)))
-        V.append(_vm(f"shield{i}", M.revolve([(0.0, 0.0), (0.012, 0.0), (0.014, -0.004), (0.014, -0.010), (0.0, -0.012)],
-                                             n=32, axis="Y"), STEEL, "steel", offset=(x, H.LENS_Y - 0.040, H.PORT_Z)))
-    V.append(_vm("bezel", M.rbox((0.012, 0.004, 0.170), 6, axis="Y"), BLACK, offset=(xc, H.LENS_Y - 0.040, bot + 0.100)))
-    V.append(_vm("marker", M.rbox((0.004, 0.080, 0.024), 8, axis="X"), AMBER, "acrylic", 0.85,
-                 offset=(xc + 0.199, H.LENS_Y - 0.060, bot + 0.040)))
-    # moulded port cans on the back, ribbed; the low-beam one carries the open PGJ19 boss
-    for i, x in enumerate((H.PORT_X, H.HIGH_X)):
+    secs_shell, secs_lens = [], []
+    for y, d, h, zb in H.SECTIONS:
+        zc = H.TOP + zb + h / 2
+        secs_shell.append((y, d - 0.045, h, 5.0, H.BACK_X + (d - 0.045) / 2, zc))
+        secs_lens.append((y, 0.062, h * 0.97, 5.0, H.BACK_X + d - 0.031, zc))
+    V.append(_vm("shell", M.loft(secs_shell, axis="Y", n=64), HOUSING, "matte"))
+    V.append(_vm("lens", M.loft(secs_lens, axis="Y", n=64), LENS, "acrylic", 0.22))
+    # seam band where the lens is bonded on
+    V.append(_vm("seam", M.loft([(y, 0.006 + 0.0, h + 0.004, 5.0, H.BACK_X + d - 0.045, H.TOP + zb + h / 2)
+                                  for y, d, h, zb in H.SECTIONS], axis="Y", n=64), SEAM))
+    # reflectors seen through the lens: low beam (large, outboard), high beam (inboard), turn signal
+    for i, (y, z, r) in enumerate(((H.PORT_Y, H.PORT_Z, 0.085), (H.HIGH_Y, H.HIGH_Z, 0.070), (-0.330, H.TOP + 0.13, 0.050))):
+        d = [s_[1] for s_ in H.SECTIONS if abs(s_[0] - y) < 0.08]
+        front = H.BACK_X + (d[0] if d else 0.24) - 0.035
+        prof = [(r - (r - 0.012) * k / 8, -0.05 * (1 - ((r - (r - 0.012) * k / 8) / r) ** 2)) for k in range(9)]
+        bowl = M.revolve(prof, n=48, axis="X")
+        V.append(_vm(f"reflector{i}", bowl, CHROME, "aluminium", offset=(front + 0.005, y, z)))
+        V.append(_vm(f"shield{i}", M.revolve([(0.0, 0.0), (0.012, 0.0), (0.014, 0.004), (0.014, 0.010), (0.0, 0.012)],
+                                             n=32, axis="X"), STEEL, "steel", offset=(front - 0.03, y, z)))
+    V.append(_vm("turn_bulb", M.revolve([(0.0, 0.0), (0.006, 0.002), (0.0065, 0.010), (0.004, 0.016), (0.0, 0.017)], n=24,
+                                        axis="X"), AMBER, "acrylic", 0.9, offset=(H.BACK_X + 0.17, -0.330, H.TOP + 0.13)))
+    V.append(_vm("bezel", M.rbox((0.004, 0.012, 0.200), 6, axis="X"), BLACK, offset=(H.BACK_X + 0.250, 0.010, H.TOP + 0.150)))
+    V.append(_vm("marker", M.rbox((0.060, 0.004, 0.026), 8, axis="Y"), AMBER, "acrylic", 0.85,
+                 offset=(H.BACK_X + 0.090, -0.451, H.TOP + 0.150)))
+    # stiffening ribs down the back
+    for k, y in enumerate((-0.30, -0.18, 0.02, 0.20)):
+        V.append(_vm(f"back_rib{k}", M.rbox((0.006, 0.004, 0.200), 4, axis="X"), HOUSING, "matte",
+                     offset=(H.BACK_X - 0.002, y, H.TOP + 0.150)))
+    # ribbed port cans; the low-beam one carries the open PGJ19 boss and its bayonet notches
+    for i, (y, z) in enumerate(((H.PORT_Y, H.PORT_Z), (H.HIGH_Y, H.HIGH_Z))):
         prof = [(0.050, 0.0), (0.046, -0.002), (0.0425, -0.006), (H.CAN_R, -0.010), (H.CAN_R, -H.CAN_H + 0.002),
                 (H.CAN_R - 0.003, -H.CAN_H)]
         if i == 0:
             prof += [(H.BOSS_R + 0.001, -H.CAN_H), (H.BOSS_R, -H.CAN_H - 0.002), (H.BOSS_R, -H.CAN_H - H.BOSS_L + 0.0015),
                      (H.BOSS_R - 0.0015, -H.CAN_H - H.BOSS_L), (H.HOLE_R, -H.CAN_H - H.BOSS_L), (H.HOLE_R, -0.004)]
-            V.append(_vm("bore", M.revolve([(H.HOLE_R - 0.0003, -0.004), (0.0, -0.004)], n=32, axis="Y"), BLACK,
-                         offset=(x, H.BACK_Y, H.PORT_Z)))
+            V.append(_vm("bore", M.revolve([(H.HOLE_R - 0.0003, -0.004), (0.0, -0.004)], n=32, axis="X"), BLACK,
+                         offset=(H.BACK_X, y, z)))
             V.append(_vm("boss_rim", M.revolve([(H.BOSS_R + 0.0012, -H.CAN_H - 0.002), (H.BOSS_R + 0.0012, -H.CAN_H - H.BOSS_L),
                                                 (H.HOLE_R - 0.0004, -H.CAN_H - H.BOSS_L - 0.0006),
-                                                (H.HOLE_R - 0.0004, -H.CAN_H - H.BOSS_L + 0.001)], n=64, axis="Y"),
-                         (0.30, 0.30, 0.32), "satin", offset=(x, H.BACK_Y, H.PORT_Z)))
-        else:
-            prof += [(0.0, -H.CAN_H)]
-        V.append(_vm(f"can{i}", M.revolve(prof, n=64, axis="Y"), (0.15, 0.15, 0.16), "satin", offset=(x, H.BACK_Y, H.PORT_Z)))
-        V.append(_vm(f"seal{i}", M.revolve([(0.050, 0.0005), (0.0525, -0.001), (0.0525, -0.0035), (0.050, -0.0045)],
-                                           n=64, axis="Y"), (0.02, 0.02, 0.02), "gloss", offset=(x, H.BACK_Y, H.PORT_Z)))
-        for k in range(8):
-            t = 2 * math.pi * k / 8 + math.pi / 8
-            rib = M.rbox((0.0035, H.CAN_H - 0.004, 0.006), 4, axis="Y")
-            V.append(_vm(f"rib{i}_{k}", rib, HOUSING,
-                         offset=(x + (H.CAN_R + 0.0012) * math.cos(t), H.BACK_Y - H.CAN_H / 2 - 0.001,
-                                 H.PORT_Z + (H.CAN_R + 0.0012) * math.sin(t))))
-        if i == 0:                                                       # the boss's three bayonet notches
+                                                (H.HOLE_R - 0.0004, -H.CAN_H - H.BOSS_L + 0.001)], n=64, axis="X"),
+                         (0.30, 0.30, 0.32), "satin", offset=(H.BACK_X, y, z)))
             for k in range(3):
                 t = 2 * math.pi * k / 3 + math.radians(30)
-                V.append(_vm(f"notch{k}", M.rbox((0.004, 0.0012, 0.004), 4, axis="Y"), BLACK,
-                             offset=(x + (H.HOLE_R + 0.0015) * math.cos(t), H.PORT_FACE_Y - 0.0004,
-                                     H.PORT_Z + (H.HOLE_R + 0.0015) * math.sin(t))))
-    # high-beam port's rubber dust cover (on), with its pull tab and moulded grip rings
-    yb = H.BACK_Y - H.CAN_H
+                V.append(_vm(f"notch{k}", M.rbox((0.0012, 0.004, 0.004), 4, axis="X"), BLACK,
+                             offset=(H.PORT_FACE_X - 0.0004, y + (H.HOLE_R + 0.0015) * math.cos(t),
+                                     z + (H.HOLE_R + 0.0015) * math.sin(t))))
+        else:
+            prof += [(0.0, -H.CAN_H)]
+        V.append(_vm(f"can{i}", M.revolve(prof, n=64, axis="X"), (0.15, 0.15, 0.16), "satin", offset=(H.BACK_X, y, z)))
+        V.append(_vm(f"seal{i}", M.revolve([(0.050, 0.0005), (0.0525, -0.001), (0.0525, -0.0035), (0.050, -0.0045)],
+                                           n=64, axis="X"), (0.02, 0.02, 0.02), "gloss", offset=(H.BACK_X, y, z)))
+        for k in range(8):
+            t = 2 * math.pi * k / 8 + math.pi / 8
+            V.append(_vm(f"rib{i}_{k}", M.rbox((H.CAN_H - 0.004, 0.006, 0.0035), 4, axis="X"), HOUSING,
+                         offset=(H.BACK_X - H.CAN_H / 2 - 0.001, y + (H.CAN_R + 0.0012) * math.cos(t),
+                                 z + (H.CAN_R + 0.0012) * math.sin(t))))
+    yb = H.BACK_X - H.CAN_H
     cover = [(H.CAN_R - 0.002, 0.003), (0.0335, 0.0), (0.0335, -0.012), (0.032, -0.016), (0.026, -0.020), (0.0, -0.021)]
-    V.append(_vm("cover", M.revolve(cover, n=64, axis="Y"), RUBBER, offset=(H.HIGH_X, yb, H.PORT_Z)))
-    for k, rr in enumerate((0.018, 0.010)):
-        V.append(_vm(f"cover_ring{k}", M.revolve([(rr + 0.0015, -0.0205), (rr + 0.0015, -0.022), (rr - 0.0015, -0.022),
-                                                  (rr - 0.0015, -0.0205)], n=48, axis="Y"), RUBBER,
-                     offset=(H.HIGH_X, yb, H.PORT_Z)))
-    V.append(_vm("cover_tab", M.rbox((0.012, 0.003, 0.016), 4, axis="Y"), RUBBER,
-                 offset=(H.HIGH_X, yb - 0.004, H.PORT_Z + 0.040)))
-    # beam adjusters (blue gear caps) on top, vent cap, mounting ears with steel bushings, main plug
-    top_back = bot + 0.140
-    for k, x in enumerate((xc - 0.120, xc + 0.100)):
-        gear = [(0.0, 0.0), (0.009, 0.0), (0.009, 0.004), (0.006, 0.006), (0.006, 0.012), (0.0, 0.012)]
-        V.append(_vm(f"adjuster{k}", M.revolve(gear, n=24, axis="Z"), BLUE_CAP,
-                     offset=(x, H.BACK_Y + 0.030, bot + 0.150 + 0.0)))
-        V.append(_vm(f"adj_hex{k}", M.revolve([(0.0, 0.0), (0.004, 0.0), (0.004, 0.005), (0.0, 0.005)], n=6, axis="Z"),
-                     STEEL, "steel", offset=(x, H.BACK_Y + 0.030, bot + 0.162)))
-    V.append(_vm("vent", M.revolve([(0.0, 0.0), (0.008, 0.0), (0.009, 0.006), (0.006, 0.010), (0.0, 0.011)], n=24),
-                 BLACK, offset=(xc + 0.020, H.BACK_Y + 0.060, bot + 0.164)))
-    for k, (x, y, z) in enumerate(((xc - 0.200, H.LENS_Y - 0.150, bot + 0.150), (xc + 0.182, H.LENS_Y - 0.150, bot + 0.150),
-                                   (xc + 0.166, H.BACK_Y + 0.060, bot + 0.020))):
-        V.append(_vm(f"ear{k}", M.rbox((0.040, 0.034, 0.009), 3.0), HOUSING, "matte", offset=(x, y, z)))
-        V.append(_vm(f"bush{k}", M.revolve([(0.0045, -0.006), (0.0075, -0.006), (0.0080, -0.0055), (0.0080, 0.0055),
-                                            (0.0075, 0.006), (0.0045, 0.006), (0.0045, -0.006)], n=32), (0.85, 0.85, 0.82),
-                     "steel", offset=(x, y, z)))
-    V.append(_vm("plug", M.rbox((0.044, 0.024, 0.030), 5, axis="Y"), (0.16, 0.16, 0.17),
-                 offset=(xc + 0.000, H.BACK_Y - 0.012, bot + 0.040)))
-    V.append(_vm("plug_latch", M.rbox((0.014, 0.010, 0.004), 4), (0.16, 0.16, 0.17),
-                 offset=(xc + 0.000, H.BACK_Y - 0.018, bot + 0.057)))
+    V.append(_vm("cover", M.revolve(cover, n=64, axis="X"), RUBBER, "satin", offset=(yb, H.HIGH_Y, H.HIGH_Z)))
+    V.append(_vm("cover_tab", M.rbox((0.003, 0.012, 0.016), 4, axis="X"), RUBBER, offset=(yb - 0.004, H.HIGH_Y, H.HIGH_Z + 0.040)))
+    # top bolt flanges (three) and the outboard ear, steel-bushed
+    for k, (x, y, z) in enumerate(H.BOLTS):
+        ear = (0.040, 0.034, 0.010) if k < 3 else (0.040, 0.010, 0.034)
+        V.append(_vm(f"ear{k}", M.rbox(ear, 3.0), HOUSING, "matte", offset=(x, y if k < 3 else y + 0.010, z - 0.008 if k < 3 else z - 0.010)))
+    # beam adjusters (blue) and the main plug on its back
+    for k, y in enumerate((-0.25, 0.18)):
+        V.append(_vm(f"adjuster{k}", M.revolve([(0.0, 0.0), (0.009, 0.0), (0.009, 0.004), (0.006, 0.006), (0.006, 0.012), (0.0, 0.012)],
+                                               n=24, axis="Z"), BLUE_CAP, offset=(H.BACK_X + 0.030, y, H.TOP + 0.292)))
+    V.append(_vm("plug", M.rbox((0.024, 0.044, 0.030), 5, axis="X"), (0.16, 0.16, 0.17), offset=(H.BACK_X - 0.012, 0.02, H.TOP + 0.050)))
     return _shift(tuple(V), -np.asarray(part_pos, float))
 
 
@@ -213,27 +173,24 @@ def bulb_vmeshes(R, prefix="b"):
 
 # -- connector -------------------------------------------------------------------------------------
 def connector_vmeshes(part_pos):
-    """The connector body (its latch tab and leads are separate parts)."""
-    V = [_vm("body", M.rbox(H.CONN, 5, axis="X"), (0.025, 0.025, 0.028), "gloss"),
-         _vm("seal", M.rbox((0.0025, H.CONN[1] - 0.002, H.CONN[2] - 0.002), 6, axis="X"), (0.45, 0.45, 0.46), "matte",
-             offset=(H.CONN[0] / 2 + 0.0008, 0.0, 0.0)),
-         _vm("tab_hinge", M.rbox((0.004, 0.012, 0.002), 4), (0.10, 0.10, 0.11), offset=(-0.009, 0.0, H.CONN[2] / 2 + 0.001)),
+    """The connector body; it mates on its +y face, its leads leave its -y end (tab and leads are separate parts)."""
+    V = [_vm("body", M.rbox(H.CONN, 5, axis="Y"), (0.025, 0.025, 0.028), "gloss"),
+         _vm("seal", M.rbox((H.CONN[0] - 0.002, 0.0025, H.CONN[2] - 0.002), 6, axis="Y"), (0.45, 0.45, 0.46), "matte",
+             offset=(0.0, H.CONN[1] / 2 + 0.0008, 0.0)),
+         _vm("tab_hinge", M.rbox((0.012, 0.004, 0.002), 4), (0.10, 0.10, 0.11), offset=(0.0, -0.009, H.CONN[2] / 2 + 0.001)),
          _vm("boot", M.revolve([(0.0, 0.0), (0.0065, 0.0), (0.0058, -0.004), (0.0050, -0.008), (0.0045, -0.012),
-                                (0.0, -0.012)], n=24, axis="X"), (0.02, 0.02, 0.02), "gloss",
-             offset=(-H.CONN[0] / 2 + 0.006, 0.0, 0.0))]
-    for k, d in enumerate((-0.004, 0.004)):                              # the two cavity windows on its back
-        V.append(_vm(f"cavity{k}", M.rbox((0.0006, 0.0045, 0.006), 6, axis="X"), (0.35, 0.22, 0.12),
-                     offset=(-H.CONN[0] / 2 - 0.0002, d, 0.007)))
+                                (0.0, -0.012)], n=24, axis="Y"), (0.02, 0.02, 0.02), "gloss",
+             offset=(0.0, -H.CONN[1] / 2 + 0.006, 0.0))]
     return tuple(V)
 
 
 def tab_vmeshes():
     TAB = (0.30, 0.30, 0.32)
     V = [_vm("key", M.rbox(H.TAB, 4), TAB, "satin"),
-         _vm("ramp", M.rbox((0.003, H.TAB[1], 0.0042), 4), TAB, "satin", offset=(0.0065, 0.0, 0.0008))]
+         _vm("ramp", M.rbox((H.TAB[0], 0.003, 0.0042), 4), TAB, "satin", offset=(0.0, 0.0065, 0.0008))]
     for k in range(3):
-        V.append(_vm(f"ridge{k}", M.rbox((0.0010, 0.009, 0.0010), 3), (0.55, 0.55, 0.57),
-                     offset=(-0.005 + 0.004 * k, 0.0, H.TAB[2] / 2 + 0.0005)))
+        V.append(_vm(f"ridge{k}", M.rbox((0.009, 0.0010, 0.0010), 3), (0.55, 0.55, 0.57),
+                     offset=(0.0, -0.005 + 0.004 * k, H.TAB[2] / 2 + 0.0005)))
     return tuple(V)
 
 
@@ -328,56 +285,48 @@ def towel_vmeshes():
 # -- engine-bay section ------------------------------------------------------------------------------
 def bay_vmeshes(part_pos):
     E_COAT = (0.06, 0.06, 0.065)          # black e-coated steel
-    BODY = (0.55, 0.57, 0.60)             # body colour (silver) on the fender apron
+    BODY = (0.55, 0.57, 0.60)             # body colour on the fender apron
     ALU = (0.62, 0.64, 0.66)
     PP = (0.08, 0.08, 0.085)
     V = []
 
-    def box(name, key, color, material=None, e=6.0, axis="Z", pad=0.0):
+    def box(name, key, color, material=None, e=6.0, axis="Z"):
         x0, x1, y0, y1, z0, z1 = H.BAY[key]
-        V.append(_vm(name, M.rbox((x1 - x0 + pad, y1 - y0 + pad, z1 - z0 + pad), e, axis=axis), color, material,
+        V.append(_vm(name, M.rbox((x1 - x0, y1 - y0, z1 - z0), e, axis=axis), color, material,
                      offset=((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2)))
 
-    box("tie_bar", "tie_bar", E_COAT, "satin", e=8, axis="X")
+    box("tie_bar", "tie_bar", E_COAT, "satin", e=8, axis="Y")
     x0, x1, y0, y1, z0, z1 = H.BAY["tie_bar"]
-    for k in range(5):                                                   # its lightening holes and flanges
+    for k in range(9):                                                   # its lightening holes
         V.append(_vm(f"hole{k}", M.revolve([(0.0, 0.0), (0.009, 0.0), (0.009, 0.0008), (0.0, 0.0008)], n=24), (0.02, 0.02, 0.02),
-                     offset=(x0 + 0.03 + 0.05 * k, (y0 + y1) / 2, z1 + 0.0002)))
-    for yy in (y0 - 0.006, y1 + 0.006):
-        V.append(_vm(f"flange{yy > 0.12}", M.rbox((x1 - x0, 0.012, 0.003), 8, axis="X"), E_COAT, "satin",
-                     offset=((x0 + x1) / 2, yy, z0 + 0.0015)))
-    box("core", "radiator", ALU, "aluminium_brushed", e=10, axis="X")
+                     offset=((x0 + x1) / 2, y0 + 0.06 + 0.105 * k, z1 + 0.0002)))
+    V.append(_vm("flange", M.rbox((0.012, y1 - y0, 0.003), 8, axis="Y"), E_COAT, "satin", offset=(x0 - 0.006, (y0 + y1) / 2, z0 + 0.0015)))
+    box("core", "radiator", ALU, "aluminium_brushed", e=10, axis="Y")
     x0, x1, y0, y1, z0, z1 = H.BAY["radiator"]
-    for k in range(20):                                                  # its tubes, seen edge-on
-        V.append(_vm(f"tube{k}", M.rbox((x1 - x0, 0.0012, 0.0016), 10, axis="X"), (0.30, 0.31, 0.33),
-                     offset=((x0 + x1) / 2, y0 - 0.0004, z0 + 0.008 + 0.0093 * k)))
+    for k in range(28):
+        V.append(_vm(f"tube{k}", M.rbox((0.0012, y1 - y0, 0.0016), 10, axis="Y"), (0.30, 0.31, 0.33),
+                     offset=(x0 - 0.0004, (y0 + y1) / 2, z0 + 0.008 + 0.0098 * k)))
     box("end_tank", "end_tank", PP, "satin", e=5)
-    box("bracket_in", "bracket_in", E_COAT, "satin", e=6)
-    box("fender", "fender", BODY, "satin", e=10, axis="X")
-    box("fender_rail", "fender_rail", BODY, "satin", e=8, axis="Y")
-    box("bracket_out", "bracket_out", E_COAT, "satin", e=6)
-    box("lower_support", "lower_support", E_COAT, "satin", e=6)
-    # air filter box: lower housing, lid with four spring clips, intake snorkel along the fender
-    x0, x1, y0, y1, z0, z1 = H.BAY["airbox"]
-    V.append(_vm("airbox", M.loft([(z0, x1 - x0, y1 - y0, 5, (x0 + x1) / 2, (y0 + y1) / 2),
-                                    (z1 - 0.040, x1 - x0, y1 - y0, 5, (x0 + x1) / 2, (y0 + y1) / 2),
-                                    (z1 - 0.036, x1 - x0 + 0.010, y1 - y0 + 0.010, 5, (x0 + x1) / 2, (y0 + y1) / 2),
-                                    (z1 - 0.032, x1 - x0 + 0.010, y1 - y0 + 0.010, 5, (x0 + x1) / 2, (y0 + y1) / 2),
-                                    (z1 - 0.004, x1 - x0 - 0.004, y1 - y0 - 0.004, 5, (x0 + x1) / 2, (y0 + y1) / 2),
-                                    (z1, x1 - x0 - 0.020, y1 - y0 - 0.020, 5, (x0 + x1) / 2, (y0 + y1) / 2)], axis="Z", n=48),
-                 PP, "matte"))
+    box("fender", "fender", BODY, "satin", e=10, axis="Y")
+    box("fender_rail", "fender_rail", BODY, "satin", e=8, axis="X")
+    box("ear_bracket", "ear_bracket", E_COAT, "satin", e=6)
+    x0, x1, y0, y1, z0, z1 = H.AIRBOX
+    cxa, cya = (x0 + x1) / 2, (y0 + y1) / 2
+    V.append(_vm("airbox", M.loft([(z0, x1 - x0, y1 - y0, 5, cxa, cya), (z1 - 0.040, x1 - x0, y1 - y0, 5, cxa, cya),
+                                    (z1 - 0.036, x1 - x0 + 0.010, y1 - y0 + 0.010, 5, cxa, cya),
+                                    (z1 - 0.032, x1 - x0 + 0.010, y1 - y0 + 0.010, 5, cxa, cya),
+                                    (z1 - 0.004, x1 - x0, y1 - y0, 5, cxa, cya), (z1, x1 - x0 - 0.004, y1 - y0 - 0.004, 6, cxa, cya)],
+                                   axis="Z", n=48), PP, "matte"))
     for k, (x, y) in enumerate(((x0 - 0.003, y0 + 0.04), (x0 - 0.003, y1 - 0.04), (x1 + 0.003, y0 + 0.04), (x1 + 0.003, y1 - 0.04))):
         V.append(_vm(f"clip{k}", M.rbox((0.003, 0.012, 0.030), 4), STEEL, "steel", offset=(x, y, z1 - 0.034)))
-    snork = M.bend([(0.600, -0.130, H.TOP + 0.110), (0.618, -0.100, H.TOP + 0.110), (0.618, 0.150, H.TOP + 0.110)], radius=0.03)
-    V.append(_vm("snorkel", M.tube(snork, 0.016, n=24), PP, "matte"))
-    # flange bolts holding the lamp
+    snork = M.bend([(cxa, y1, z0 + 0.09), (cxa, y1 + 0.05, z0 + 0.09), (cxa - 0.10, y1 + 0.09, z0 + 0.09)], radius=0.03)
+    V.append(_vm("snorkel", M.tube(snork, 0.024, n=24), PP, "matte"))
     for k, (x, y, z) in enumerate(H.BOLTS):
-        V.append(_vm(f"bolt{k}", M.revolve([(0.0, 0.0), (0.0095, 0.0), (0.0095, 0.0015), (0.0065, 0.0015), (0.0065, 0.0065),
-                                            (0.0, 0.0065)], n=6), (0.70, 0.66, 0.40), "steel", offset=(x, y, z)))
-    # the harness: corrugated loom from the lamp's clip along the lamp's foot to the radiator support
-    loom = M.bend([(H.CLIP[0] - 0.004, H.CLIP[1] + 0.004, H.CLIP[2]), (0.18, -0.066, H.TOP + 0.026),
-                   (0.12, 0.02, H.TOP + 0.03), (0.06, 0.11, H.TOP + 0.06)], radius=0.04)
+        ax = "Z" if k < 3 else "Y"
+        bolt = M.revolve([(0.0, 0.0), (0.0095, 0.0), (0.0095, 0.0015), (0.0065, 0.0015), (0.0065, 0.0065), (0.0, 0.0065)], n=6, axis=ax)
+        V.append(_vm(f"bolt{k}", bolt, (0.70, 0.66, 0.40), "steel", offset=(x, y if k < 3 else y + 0.0, z)))
+    loom = M.bend([(H.CLIP[0] - 0.004, H.CLIP[1], H.CLIP[2]), (H.CLIP[0] - 0.01, -0.05, H.TOP + 0.02),
+                   (H.CLIP[0] - 0.01, 0.02, H.TOP + 0.03)], radius=0.04)
     V.append(_vm("loom", M.tube(loom, 0.0065, n=14), (0.03, 0.03, 0.03), "satin"))
-    V.append(_vm("hclip", M.rbox((0.014, 0.012, 0.016), 4), (0.10, 0.10, 0.11), "satin",
-                 offset=(H.CLIP[0], H.CLIP[1] + 0.006, H.CLIP[2])))
+    V.append(_vm("hclip", M.rbox((0.012, 0.014, 0.016), 4), (0.10, 0.10, 0.11), "satin", offset=H.CLIP))
     return _shift(tuple(V), -np.asarray(part_pos, float))

@@ -13,7 +13,8 @@ OUT_MM = 20.0                         # the old bulb drawn at least this far off
 AWAY_MM = 15.0                        # ... and kept at least this far off it (not put back into the port)
 CLEAR_NEW = 0.08                      # finger pads at least this far from the new bulb's and the connector's surfaces
 CLEAR_OLD = 0.05                      # ... and from the old bulb's
-GLASS_MM = 2.5                        # a finger pad this close to the new bulb's quartz capsule: touched
+GLASS_MM = 0.5                        # a finger pad's surface reaching the quartz capsule (contact tolerance): touched;
+                                      # a near miss is not contact, as on the real trial's video and residue check
 REST_V = 0.02                         # m/s: the old bulb at rest ...
 REST_W = 0.20                         # rad/s: ... and not rolling or spinning
 BULB_R = 0.020                        # a bulb's extent about its axis (flange radius)
@@ -28,10 +29,10 @@ def _segment_box(a, b, box, n=81):
 
 
 def _bulb_axis(pose):
-    """A bulb's extent as a segment along its axis (+y in its Part frame): socket side of the grip to the
+    """A bulb's extent as a segment along its axis (+x in its Part frame): socket side of the grip to the
     capsule's tip."""
     p = np.asarray(pose, float)
-    a = H.mat(p) @ np.array([0.0, 1.0, 0.0])
+    a = H.mat(p) @ np.array([1.0, 0.0, 0.0])
     return p[:3] - a * 0.012, p[:3] + a * 0.052
 
 

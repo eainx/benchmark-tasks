@@ -1,12 +1,15 @@
 """Car repair: "Replace the headlight bulb."
 
-A halogen headlamp unit, off the car, stands upright on a folded shop towel, as it sits in the car, with its back toward the right arm. In its
-low-beam port sits the old H11 bulb, locked by its quarter-turn bayonet, with the lamp's pigtail
-connector latched onto the bulb's L-shaped socket. The new H11 bulb lies in its opened blister pack on
-the bench. The connector is unlatched and pulled off, the old
-bulb turned a quarter turn counter-clockwise and drawn out, the new one put in by its base and turned
-a quarter turn clockwise to lock, and the connector pushed back on until it latches -- without touching
-the new bulb's glass.
+A halogen headlamp is bolted, as installed, into a real-size section of a car's front engine bay built
+on the bench: the radiator support and radiator on its inboard side, the fender apron on its outboard
+side and the air-filter box beside its back, which limit how the hands can reach it. In its low-beam
+port sits the old H11 bulb, locked by its quarter-turn bayonet, with the lamp's pigtail connector
+latched onto the bulb's L-shaped socket; the connector's two leads (seven colliding articulated links)
+run to a harness clip on the lamp. The new H11 bulb lies in its opened blister pack on the bench. One
+hand holds the connector while the other pushes its sprung latch tab down; the connector is pulled off
+and held aside on its leads, the old bulb is turned a quarter turn back and drawn out, the new one is
+put in by its base and turned a quarter turn to lock, and the connector is pushed back on until it
+latches -- without touching the new bulb's glass.
 """
 from __future__ import annotations
 
@@ -33,7 +36,7 @@ NAME = "headlight-bulb-swap"
 INSTRUCTION = json.loads((_here / "task.json").read_text())["instruction"]
 HZ = 20
 MAX_STEPS = 1800
-OBJECT_NAMES = ("old_bulb", "new_bulb", "connector", "tab")
+OBJECT_NAMES = ("old_bulb", "new_bulb", "connector", "tab", *(f"lead{i}" for i in range(7)))
 
 DOWN = simkit.patch_demo()
 
@@ -192,8 +195,8 @@ class Dynamics:
             self.free = True
         conn_off_old = self.free and float(np.linalg.norm(conn[:3] - cseat)) > 0.010
         # -- the old bulb's bayonet
-        sd = Ro @ np.array([-1.0, 0.0, 0.0])                                  # its socket's direction
-        old_deg = math.degrees(math.atan2(sd[2], -sd[0]))
+        sd = Ro @ np.array([0.0, -1.0, 0.0])                                  # its socket's direction (-y when locked)
+        old_deg = math.degrees(math.atan2(-sd[2], -sd[1]))                    # its turn about +x (-90: unlocked)
         if self.old_in:
             held = any(h[1] < 0.016 and float(np.linalg.norm(h[0] - old[:3])) < GRIP_MM / 1000 for h in hands.values())
             turnable = conn_off_old and held
@@ -205,14 +208,14 @@ class Dynamics:
                 self._on("old", False)
                 self.old_in = False
         # -- the new bulb's bayonet
-        sn = Rn @ np.array([0.0, 0.0, -1.0])
-        new_deg = math.degrees(math.atan2(-sn[0], -sn[2]))
+        sn = Rn @ np.array([0.0, 0.0, 1.0])                                   # its socket (up as it goes in)
+        new_deg = math.degrees(math.atan2(-sn[1], sn[2]))                     # its turn about +x (+90: locked)
         rel = new[:3] - seat
-        radial = math.hypot(rel[0], rel[2])
-        axis = Rn @ np.array([0.0, 1.0, 0.0])
-        axis_deg = math.degrees(math.acos(float(np.clip(axis[1], -1, 1))))
-        lug_deg = math.degrees(math.acos(float(np.clip(-sn[2], -1, 1))))
-        if not self.new_on and not self.old_in and radial < ENGAGE_RADIAL and abs(rel[1]) < ENGAGE_AXIAL \
+        radial = math.hypot(rel[1], rel[2])
+        axis = Rn @ np.array([1.0, 0.0, 0.0])
+        axis_deg = math.degrees(math.acos(float(np.clip(axis[0], -1, 1))))
+        lug_deg = math.degrees(math.acos(float(np.clip(sn[2], -1, 1))))
+        if not self.new_on and not self.old_in and radial < ENGAGE_RADIAL and abs(rel[0]) < ENGAGE_AXIAL \
                 and axis_deg < ENGAGE_AXIS_DEG and lug_deg < ENGAGE_LUG_DEG:
             self._on("new", True)
             self.new_on = True
@@ -234,7 +237,7 @@ class Dynamics:
                 "connector_free": self.free, "old_in_port": self.old_in, "old_turnable": self.old_turnable,
                 "old_deg": round(old_deg, 1), "new_deg": round(new_deg, 1), "new_engaged": self.new_on,
                 "new_locked": self.locked, "connector_on_new": self.plugged,
-                "new_radial_mm": round(1000 * radial, 1), "new_axial_mm": round(1000 * rel[1], 1),
+                "new_radial_mm": round(1000 * radial, 1), "new_axial_mm": round(1000 * rel[0], 1),
                 "new_axis_deg": round(axis_deg, 1), "new_lug_deg": round(lug_deg, 1),
                 "conn_mm": round(1000 * crel, 1), "conn_deg": round(ang, 1),
                 "tab_pressed_mm": round(1000 * depressed, 2)}
@@ -276,11 +279,9 @@ def _tcp(tip, rot, label, seconds, finger):
     return Waypoint(seconds, tuple(map(float, tip - rot @ np.array([0.0, 0.0, PAD_TIP]))), finger, label, rot)
 
 
-REST = {"left": (0.16, 0.24, H.TOP + 0.26), "right": (0.16, -0.24, H.TOP + 0.20)}
-OVER_BAR = np.array([0.300, 0.100, H.TOP + 0.280])   # the left hand's way past the radiator support's tie bar end
-Y = np.array([0.0, 1.0, 0.0])
-A_L = np.array([1.0, 0.0, 0.0])                     # the left hand takes the connector level, from behind its leads
-CONN_GRIP = -0.0075                                  # jaws on the connector's 18 mm sides
+REST = {"left": (0.16, 0.24, H.TOP + 0.26), "right": (0.16, -0.24, H.TOP + 0.24)}
+X = np.array([1.0, 0.0, 0.0])
+CONN_PINCH = -0.0100                                 # jaws pinching the connector top to bottom: its tab pressed down
 BULB_GRIP = -0.0090                                  # jaws on the bulb's 24 mm grip
 PICK_OPEN = -0.0220                                  # jaws 44 mm apart: inside the blister tray's walls
 PLAN_T = {}
@@ -298,99 +299,90 @@ def _seq(items):
 
 
 def demo():
+    """The right hand pinches the connector (its tab pressed down) and pulls it off outboard, holding it
+    aside on its leads; the left turns the old bulb out, sets it on the bench, takes the new one from the
+    pack on the air box by its base, puts it in square and turns it home; the right pushes the connector
+    back on till it latches; both stand clear."""
     C = np.asarray(H.connector_pos(), float)
     B = np.asarray(H.bulb_seated_pos(), float)
     NB = np.asarray(H.new_bulb_pos(), float)
-    tab = np.asarray(H.tab_rest(), float) + np.array([0.003, 0.0, H.TAB[2] / 2 - 0.0080])   # pushing on the tab (2 mm to its stop)
-    down_x = grip((0, 0, -1), 90, up=(1, 0, 0))                           # top-down, jaws along x
-    down_y = grip((0, 0, -1), 180, up=(1, 0, 0))                          # top-down, jaws along y: fits between the left's
-    g_conn = grip(A_L, 180)                                               # jaws along y (wrist mid-range)
-    c_tip = C + np.array([0.006, 0.0, 0.0])                               # pad tips near its front end
-    g_old0, g_old1 = grip(Y, 270), grip(Y, 180)                           # jaws vertical, then level: -90 deg about +y
-    g_new0, g_new1 = grip(Y, 180), grip(Y, 285)                           # +90 deg about +y locks it (the stop takes the rest)
-    b_tip = B + Y * 0.006
-    ap_drop = np.array([0.0, 0.87, -0.5])
-    g_drop = grip(ap_drop, 180)
-    drop = np.array([0.400, -0.195, H.TOP + 0.060])
-    n_tip = NB + np.array([0.0, -0.004, -0.004])
-    pre_ins = np.array([B[0], B[1] - 0.045, B[2]])
+    g_pinch = grip(X, 90)                                                 # jaws vertical: top pad on the tab
+    c_tip = C + np.array([0.006, 0.0, 0.0])
+    park = np.array([0.270, -0.265, H.TOP + 0.115])                       # well outboard: clear of the left hand at the port
+    g_old0, g_old1 = grip(X, -90), grip(X, 180)                           # -90 deg about +x unlocks it
+    g_new0, g_new1 = grip(X, 180), grip(X, 270)                           # +90 deg about +x locks it
+    b_tip = B + X * 0.004
+    n_tip = NB + X * 0.004
+    ap_drop = np.array([0.87, 0.0, -0.5])
+    drop = np.array([0.215, -0.020, H.TOP + 0.055])
+    high = np.array([0.16, 0.0, H.TOP + 0.26])
     right = [
-        Waypoint(3.5, REST["right"], FINGER_CLOSED, "look", DOWN),
-        _tcp(tab + np.array([0, 0, 0.05]), down_y, "over the latch tab", 2.0, FINGER_CLOSED),
-        _tcp(tab + np.array([0, 0, 0.02]), down_y, "over the latch tab", 1.6, FINGER_CLOSED),
-        _tcp(tab, down_y, "press the tab", 1.4, FINGER_CLOSED),
-        "MARK_PRESSED",
-        _tcp(tab, down_y, "hold the tab down", 2.2, FINGER_CLOSED),
-        _tcp(tab + np.array([0, 0, 0.04]), down_y, "off the tab", 1.0, FINGER_CLOSED),
-        _tcp(b_tip - Y * 0.06, g_old0, "behind the old bulb", 2.2, FINGER_OPEN),
-        _tcp(b_tip, g_old0, "round its grip", 1.2, FINGER_OPEN),
-        _tcp(b_tip, g_old0, "grip the old bulb", 0.6, BULB_GRIP),
-        _tcp(b_tip, grip(Y, 225), "turn it a quarter turn back", 1.2, BULB_GRIP),
-        _tcp(b_tip, g_old1, "turn it a quarter turn back", 1.2, BULB_GRIP),
-        _tcp(b_tip, g_old1, "turn it a quarter turn back", 0.4, BULB_GRIP),
-        _tcp(b_tip - Y * 0.030, g_old1, "draw it out", 1.2, BULB_GRIP),
-        _tcp(b_tip - Y * 0.050 + np.array([0, 0, 0.02]), grip(np.array([0.0, 0.94, -0.34]), 180), "draw it out", 1.0,
-             BULB_GRIP),
-        _tcp(drop, g_drop, "set it down on the bench", 2.0, BULB_GRIP),
-        _tcp(drop, g_drop, "let it go", 0.5, FINGER_OPEN),
-        _tcp(drop - ap_drop * 0.05, g_drop, "back off", 0.8, FINGER_OPEN),
-        _tcp(n_tip + np.array([0, 0, 0.07]), down_x, "over the new bulb", 2.0, PICK_OPEN),
-        _tcp(n_tip + np.array([0, 0, 0.01]), down_x, "down round its grip", 1.2, PICK_OPEN),
-        _tcp(n_tip, down_x, "down round its grip", 0.6, PICK_OPEN),
-        _tcp(n_tip, down_x, "take it by its base", 0.6, BULB_GRIP),
-        _tcp(n_tip + np.array([0, 0, 0.04]), down_x, "lift it out of the pack", 1.0, BULB_GRIP),
-        _tcp(pre_ins + (n_tip - NB) + np.array([0, 0, 0.04]), down_x, "to the port", 2.4, BULB_GRIP),
-        _tcp(pre_ins + (n_tip - NB), down_x, "line it up with the port", 1.2, BULB_GRIP),
-        "MARK_INSERT",
-        _tcp(B + (n_tip - NB) - Y * 0.004, down_x, "into the port", 2.0, BULB_GRIP),
-        _tcp(B + (n_tip - NB), down_x, "into the port", 0.8, BULB_GRIP),
-        _tcp(B + (n_tip - NB), down_x, "let go of it", 0.5, FINGER_OPEN),
-        _tcp(B + (n_tip - NB) + np.array([0, 0, 0.045]), down_x, "up off it", 1.0, FINGER_OPEN),
-        _tcp(b_tip - Y * 0.07 + np.array([0, 0, 0.02]), g_new0, "behind the new bulb", 2.2, FINGER_OPEN),
-        _tcp(b_tip - Y * 0.05, g_new0, "behind the new bulb", 0.8, FINGER_OPEN),
-        _tcp(b_tip, g_new0, "round its grip", 1.2, FINGER_OPEN),
-        _tcp(b_tip, g_new0, "grip the new bulb", 0.6, BULB_GRIP),
-        _tcp(b_tip, grip(Y, 232), "turn it a quarter turn to lock", 1.2, BULB_GRIP),
-        _tcp(b_tip, g_new1, "turn it a quarter turn to lock", 1.2, BULB_GRIP),
-        _tcp(b_tip, g_new1, "turn it a quarter turn to lock", 0.4, BULB_GRIP),
-        _tcp(b_tip, g_new1, "let go of it", 0.6, FINGER_OPEN),
-        _tcp(b_tip - Y * 0.07, g_new1, "back off", 1.2, FINGER_OPEN),
-        "MARK_RIGHT_DONE",
-        Waypoint(2.0, REST["right"], FINGER_OPEN, "rest", DOWN),
+        Waypoint(1.0, REST["right"], FINGER_OPEN, "look", DOWN),
+        _tcp(c_tip - X * 0.07, g_pinch, "behind the connector", 2.2, FINGER_OPEN),
+        _tcp(c_tip, g_pinch, "round the connector", 1.4, FINGER_OPEN),
+        _tcp(c_tip, g_pinch, "pinch it, pressing the tab", 0.8, CONN_PINCH),
+        _tcp(c_tip, g_pinch, "pinch it, pressing the tab", 1.0, CONN_PINCH),
+        _tcp(c_tip - np.array([0.0, 0.035, 0.0]), g_pinch, "pull it off the socket", 1.4, CONN_PINCH),
+        _tcp(park, g_pinch, "hold it aside on its leads", 1.8, CONN_PINCH),
+        "MARK_PARKED",
     ]
     right, mr, tr = _seq(right)
-    t_press = mr["MARK_PRESSED"]
-    t_done = mr["MARK_RIGHT_DONE"]
-    park = np.array([0.235, -0.125, H.TOP + 0.130])                       # within the leads' reach
     left = [
         Waypoint(1.0, REST["left"], FINGER_OPEN, "look", DOWN),
-        _tcp(OVER_BAR, g_conn, "over the radiator support", 1.5, FINGER_OPEN),
-        _tcp(c_tip - A_L * 0.06, g_conn, "behind the connector", 2.0, FINGER_OPEN),
-        _tcp(c_tip, g_conn, "round the connector", 1.2, FINGER_OPEN),
-        _tcp(c_tip, g_conn, "take the connector", 0.6, CONN_GRIP),
+        Waypoint(1.5, tuple(high), FINGER_OPEN, "over the air box", DOWN),
     ]
     _, _, tl = _seq(left)
-    left += [_tcp(c_tip, g_conn, "hold it while the tab is pressed", max(0.2, t_press + 1.6 - tl), CONN_GRIP),
-             _tcp(c_tip + np.array([-0.035, 0.0, 0.0]), g_conn, "pull it off the socket", 1.4, CONN_GRIP),
-             _tcp(park, g_conn, "hold it aside", 1.6, CONN_GRIP)]
-    _, _, tl = _seq(left)
-    pre_plug = c_tip + np.array([-0.030, 0.0, 0.0])
-    left += [_tcp(park, g_conn, "hold it aside", max(0.2, t_done - 1.0 - tl), CONN_GRIP),
-             _tcp(pre_plug, g_conn, "line it up with the new socket", 2.0, CONN_GRIP),
-             "MARK_PLUG",
-             _tcp(c_tip + np.array([0.0015, 0.0, 0.0]), g_conn, "push it on till it latches", 2.0, CONN_GRIP),
-             _tcp(c_tip + np.array([0.0015, 0.0, 0.0]), g_conn, "push it on till it latches", 0.6, CONN_GRIP),
-             _tcp(c_tip, g_conn, "let go of it", 0.6, FINGER_OPEN),
-             _tcp(c_tip - A_L * 0.07, g_conn, "back off", 1.2, FINGER_OPEN),
-             _tcp(OVER_BAR, g_conn, "over the radiator support", 1.5, FINGER_OPEN),
-             Waypoint(1.5, REST["left"], FINGER_OPEN, "rest", DOWN)]
+    left += [
+        _tcp(b_tip - X * 0.07, g_old0, "behind the old bulb", max(2.0, mr["MARK_PARKED"] - tl), FINGER_OPEN),
+        _tcp(b_tip, g_old0, "round its grip", 1.2, FINGER_OPEN),
+        _tcp(b_tip, g_old0, "grip the old bulb", 0.6, BULB_GRIP),
+        _tcp(b_tip, grip(X, -135), "turn it a quarter turn back", 1.2, BULB_GRIP),
+        _tcp(b_tip, g_old1, "turn it a quarter turn back", 1.2, BULB_GRIP),
+        _tcp(b_tip, g_old1, "turn it a quarter turn back", 0.4, BULB_GRIP),
+        _tcp(b_tip - X * 0.040, g_old1, "draw it out", 1.2, BULB_GRIP),
+        _tcp(drop + np.array([0, 0, 0.05]), grip(ap_drop, 180), "to the bench", 1.8, BULB_GRIP),
+        _tcp(drop, grip(ap_drop, 180), "set it down", 1.0, BULB_GRIP),
+        _tcp(drop, grip(ap_drop, 180), "let it go", 0.5, FINGER_OPEN),
+        _tcp(drop - ap_drop * 0.05, grip(ap_drop, 180), "back off", 0.8, FINGER_OPEN),
+        _tcp(n_tip - X * 0.08 + np.array([0, 0, 0.03]), g_new0, "behind the new bulb", 2.0, PICK_OPEN),
+        _tcp(n_tip - X * 0.06, g_new0, "behind the new bulb", 1.0, PICK_OPEN),
+        _tcp(n_tip, g_new0, "round its base", 1.2, PICK_OPEN),
+        _tcp(n_tip, g_new0, "take it by its base", 0.6, BULB_GRIP),
+        _tcp(n_tip + np.array([0, 0, 0.012]), g_new0, "lift it out of the pack", 0.8, BULB_GRIP),
+        _tcp(n_tip - X * 0.07 + np.array([0, 0, 0.02]), g_new0, "draw it back", 1.2, BULB_GRIP),
+        _tcp(b_tip - X * 0.06, g_new0, "to the port", 2.4, BULB_GRIP),
+        _tcp(b_tip - X * 0.035, g_new0, "line it up with the port", 1.2, BULB_GRIP),
+        "MARK_INSERT",
+        _tcp(b_tip - X * 0.004, g_new0, "into the port", 1.8, BULB_GRIP),
+        _tcp(b_tip, g_new0, "into the port", 0.8, BULB_GRIP),
+        _tcp(b_tip, grip(X, 225), "turn it a quarter turn to lock", 1.2, BULB_GRIP),
+        _tcp(b_tip, grip(X, 285), "turn it a quarter turn to lock", 1.2, BULB_GRIP),
+        _tcp(b_tip, grip(X, 285), "turn it a quarter turn to lock", 0.4, BULB_GRIP),
+        _tcp(b_tip, grip(X, 285), "let go of it", 0.6, FINGER_OPEN),
+        _tcp(b_tip - X * 0.08, grip(X, 285), "back off", 1.2, FINGER_OPEN),
+        "MARK_LEFT_DONE",
+        Waypoint(1.5, tuple(high), FINGER_OPEN, "over the air box", DOWN),
+        Waypoint(1.5, REST["left"], FINGER_OPEN, "rest", DOWN),
+    ]
     left, ml, _ = _seq(left)
-    PLAN_T.update(mr)
+    _, _, tr = _seq(right)
+    pre_plug = c_tip - np.array([0.0, 0.030, 0.0])
+    right += [_tcp(park, g_pinch, "hold it aside on its leads", max(0.2, ml["MARK_LEFT_DONE"] - tr), CONN_PINCH),
+              _tcp(pre_plug, g_pinch, "line it up with the new socket", 2.0, CONN_PINCH)]
+    right, mr2, _ = _seq(right + ["MARK_PLUG",
+                                  _tcp(c_tip + np.array([0.0, 0.0015, 0.0]), g_pinch, "push it on till it latches", 2.0, CONN_PINCH),
+                                  _tcp(c_tip + np.array([0.0, 0.0015, 0.0]), g_pinch, "push it on till it latches", 0.6, CONN_PINCH),
+                                  _tcp(c_tip, g_pinch, "let go of it", 0.6, FINGER_OPEN),
+                                  _tcp(c_tip - X * 0.08, g_pinch, "back off", 1.2, FINGER_OPEN),
+                                  Waypoint(1.5, REST["right"], FINGER_OPEN, "rest", DOWN)])
+    PLAN_T.update(mr2)
     PLAN_T.update(ml)
     return {"left": left, "right": right}
 
 
 ALIGN = ("line it up with the port", "into the port")
+PORT_BRANCH = ("behind the new bulb", "round its base", "take it by its base", "lift it out of the pack", "draw it back",
+               "to the port", "line it up with the port", "into the port")
 PLUG = ("line it up with the new socket", "push it on till it latches")
 
 
@@ -411,20 +403,27 @@ class DemoController:
             plan = self.plans[side]
             pos, rot, finger, label = plan.target(t)
             pos = np.array(pos, float)
-            if side == "right" and label in ALIGN and "new" in SHARED and not SHARED.get("new_on"):
+            if side == "left" and label in ALIGN and "new" in SHARED and not SHARED.get("new_on"):
                 err = seat - np.asarray(SHARED["new"], float)
-                err[1] = 0.0                                     # along the axis the plan pushes it in
-                self.corr["right"] = np.clip(self.corr["right"] + 0.06 * err, -0.015, 0.015)
-                pos = pos + self.corr["right"]
-            elif side == "right" and label in ALIGN:
-                pos = pos + self.corr["right"]
-            if side == "left" and label in PLUG and "conn" in SHARED and not SHARED.get("plugged"):
-                err = cseat - np.asarray(SHARED["conn"], float)
-                if label == PLUG[0]:
-                    err[0] = 0.0
+                err[0] = 0.0                                     # along the axis the plan pushes it in
                 self.corr["left"] = np.clip(self.corr["left"] + 0.06 * err, -0.015, 0.015)
                 pos = pos + self.corr["left"]
-            q, pe, re = ik.solve(pos, ik.matrix_to_quat_xyzw(rot), plan.q, base_pos=plan.base_pos, iters=200)
+            elif side == "left" and label in ALIGN:
+                pos = pos + self.corr["left"]
+            if side == "right" and label in PLUG and "conn" in SHARED and not SHARED.get("plugged"):
+                err = cseat - np.asarray(SHARED["conn"], float)
+                if label == PLUG[0]:
+                    err[1] = 0.0
+                self.corr["right"] = np.clip(self.corr["right"] + 0.06 * err, -0.015, 0.015)
+                pos = pos + self.corr["right"]
+            seed = plan.q
+            if side == "left" and label == "draw it out":
+                SHARED["left_q_port"] = np.array(plan.q, float)       # the arm's pose at the port, bulb in hand
+            if side == "left" and label in PORT_BRANCH and "left_q_port" in SHARED:
+                # keep the wrist on the branch it had at the port (the IK otherwise swings it outboard,
+                # into the other arm): solve from that pose, then blend toward the current one
+                seed = 0.5 * np.asarray(plan.q, float) + 0.5 * SHARED["left_q_port"]
+            q, pe, re = ik.solve(pos, ik.matrix_to_quat_xyzw(rot), seed, base_pos=plan.base_pos, iters=200)
             SHARED[side + "_ik"] = (round(1000 * pe, 1), round(re, 3), label)
             plan.q = q
             g = float(np.clip(finger / FINGER_OPEN, 0.0, 1.0))
