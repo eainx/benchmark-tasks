@@ -2,7 +2,7 @@
 
 On a kitchen prep counter: an end-grain butcher block, and on it a filled 1-quart zip-top freezer bag of
 chopped vegetables lying flat, its press-to-seal track toward the arms and standing 30 mm out past the
-block's near edge, so a hand's fingers can close on it from above and below. A chef's knife and a few
+block's near edge, so a hand's fingers can close on it from above and below. A few
 vegetable ends lie on the block; a bowl of more chopped vegetables and the carton of bags stand behind.
 
 The track is two interlocking profiles, one on each film: a rib on the top film over a groove on the
@@ -61,6 +61,7 @@ CELL = BAG_W / N_CELLS
 # the filled pouch: chopped vegetables (about 300 g) lie in it 30 mm deep, from 30 mm behind the track
 POUCH_X = (BOARD_NEAR + 0.004, BOTTOM_X - 0.004)
 POUCH_H = 0.030
+COVER_Z = POUCH_H + 0.010              # the top film over the load's loose top layer (above the block)
 LOAD_H = 0.022                       # the packed load's solid bulk under its loose top layer
 BAG_MASS = 0.32
 ROOT_X = (POUCH_X[0] + POUCH_X[1]) / 2
@@ -136,7 +137,7 @@ def bag_object() -> Part:
                   color=FILM_EDGE, collide=False))
     add(Piece("capsule", (0.0025, BAG_W - 0.010, 0.0025), rel(BOTTOM_X - 0.0025, BAG_Y, z0 + 0.0025), axis="Y",
               color=FILM_EDGE, collide=False))
-    # sheen: light catching the top film stretched over the load
+    # sheen: light catching the top film stretched over the load (drawn only)
     for k, (dx, dy, a) in enumerate(((0.020, -0.030, 0.55), (0.055, 0.010, 0.55), (0.085, 0.045, 0.55))):
         add(Piece("box", (0.075 - 0.015 * k, 0.003, 0.0004), rel(x0 + 0.030 + dx, BAG_Y + dy, z0 + POUCH_H + 0.0015),
                   rot=(0.0, 0.0, a), color=SHEEN, collide=False))
@@ -151,11 +152,27 @@ def bag_object() -> Part:
     add(Piece("box", (n1 - n0, BAG_W - 0.004, 0.0010), rel((n0 + n1) / 2, BAG_Y, z0 + 0.0005), color=FILM_EDGE))
     add(Piece("box", (n1 - n0 - 0.004, BAG_W - 0.022, 0.0004), rel((n0 + n1) / 2 + 0.002, BAG_Y, z0 + 0.0012),
               color=INSIDE, collide=False))
-    rise = POUCH_H - (PROFILE_T + GAPE)
+    rise = COVER_Z - (PROFILE_T + GAPE)
     tilt = math.atan2(rise, n1 - n0)
-    add(Piece("box", (math.hypot(n1 - n0, rise), BAG_W - 0.004, 0.0006),
+    # (drawn whole; it collides only from 20 mm behind the track, clear of the fingers pinching the track)
+    add(Piece("box", (math.hypot(n1 - n0, rise), BAG_W - 0.004, 0.0008),
               rel((n0 + n1) / 2, BAG_Y, z0 + PROFILE_T + GAPE + rise / 2 + 0.0008), rot=(0.0, -tilt, 0.0),
               color=FILM, collide=False))
+    f = 0.020 / (n1 - n0)
+    xa = n0 + f * (n1 - n0)
+    add(Piece("box", (math.hypot(n1 - xa, rise * (1 - f)), BAG_W - 0.016, 0.0008),
+              rel((xa + n1) / 2, BAG_Y, z0 + PROFILE_T + GAPE + rise * (1 + f) / 2 + 0.0004), rot=(0.0, -tilt, 0.0),
+              color=FILM))
+    # the top film over the load: it collides, drawn as what shows of clear film (the light catching it in
+    # bands across, 16 mm apart), and the side and bottom walls of film round the load's loose top layer
+    nb = int(round((x1 - n1) / 0.016))
+    for i in range(nb + 1):
+        xb = n1 + (x1 - 0.002 - n1) * i / nb
+        add(Piece("box", (0.0025, BAG_W - 0.016, 0.0008), rel(xb, BAG_Y, z0 + COVER_Z), color=SHEEN))
+    for sgn in (-1, 1):
+        add(Piece("box", (x1 - n1, 0.0008, COVER_Z - 0.018), rel((n1 + x1) / 2, BAG_Y + sgn * (ye - 0.002), z0 + (COVER_Z + 0.018) / 2),
+                  color=FILM))
+    add(Piece("box", (0.0008, BAG_W - 0.016, COVER_Z - 0.018), rel(x1 - 0.002, BAG_Y, z0 + (COVER_Z + 0.018) / 2), color=FILM))
     # the track: groove profile (bottom film), rib profile (top film) above it, and the sealed strip that
     # replaces both where it is pressed home (drawn hidden until then)
     TRACK_PIECES.clear()
@@ -182,18 +199,8 @@ def bag_object() -> Part:
                 color=FILM_EDGE, friction=(0.40, 0.32), restitution=0.05, contact_offset=0.002, pieces=tuple(pieces))
 
 
-def knife_object() -> Part:
-    """A chef's knife lying on the block's right side, tip toward the arms (fixed: set dressing)."""
-    blade = (0.200, 0.042, 0.0022)
-    c = (BOARD_C[0] - 0.010, BOARD_C[1] - 0.160, BOARD_TOP + blade[2] / 2)
-    handle = Piece("box", (0.120, 0.024, 0.016), (blade[0] / 2 + 0.060, -0.006, 0.006), color=BLACK)
-    bolster = Piece("box", (0.010, 0.030, 0.012), (blade[0] / 2 + 0.004, -0.004, 0.004), color=STEEL)
-    tip = Piece("cylinder", (0.021, 0.0022, 0.021), (-blade[0] / 2, 0.0, 0.0), color=STEEL)
-    return Part("knife", pos=c, size=blade, exact_z=True, color=STEEL, pieces=(handle, bolster, tip))
-
-
 def scraps_object() -> Part:
-    """Cut-off ends left on the block: a carrot top, pepper core, celery ends (fixed: set dressing)."""
+    """Vegetable ends left on the block (stand-ins): a carrot top, pepper stem and core, a celery end (fixed: set dressing)."""
     c = (BOARD_C[0] + 0.090, BOARD_C[1] + 0.155, BOARD_TOP + 0.006)
     ps = (Piece("cone", (0.012, 0.030, 0.012), (0.020, 0.010, 0.006), rot=(0.0, 1.5708, 0.3), color=CARROT),
           Piece("cylinder", (0.004, 0.012, 0.004), (0.002, 0.016, 0.008), rot=(0.0, 1.5708, 0.3), color=PEPPER_G),
@@ -264,3 +271,51 @@ def track_world(pose):
 def yaw_tilt(pose):
     r = quat_matrix(np.asarray(pose, float)[3:7])
     return math.degrees(math.atan2(r[1, 0], r[0, 0])), math.degrees(math.acos(float(np.clip(r[2, 2], -1, 1))))
+
+
+# -- the load's loose top layer: six carrot coins free inside the bag, the ones that would spill ----------
+COIN_R, COIN_H, COIN_MASS = 0.0085, 0.005, 0.0015
+COINS = tuple((POUCH_X[0] + 0.035 + 0.040 * (i % 3), BAG_Y + (-0.035 if i < 3 else 0.035)) for i in range(6))
+
+
+def coin_object(i: int) -> Part:
+    x, y = COINS[i]
+    return Part(f"coin{i + 1}", pos=(x, y, BOARD_TOP + POUCH_H + COIN_H / 2 + 0.0015), size=(COIN_R, COIN_H, COIN_R),
+                shape="cylinder", axis="Z", exact_z=True, mass=COIN_MASS, color=CARROT, friction=(0.5, 0.4),
+                restitution=0.05, contact_offset=0.002)
+
+
+def in_bag(bag_pose, p):
+    """A point inside the bag (in its frame as laid): between the track and the bottom fold, inside the
+    side seams and under the top film."""
+    bag_pose = np.asarray(bag_pose, float)
+    r = quat_matrix(bag_pose[3:7])
+    q = r.T @ (np.asarray(p, float)[:3] - bag_pose[:3]) + np.array([ROOT_X, BAG_Y, ROOT_Z])
+    return bool(TRACK_X <= q[0] <= BOTTOM_X and abs(q[1] - BAG_Y) <= BAG_W / 2 and q[2] - BOARD_TOP <= COVER_Z + 0.004)
+
+
+# -- the hands' finger pads, for clearance ------------------------------------------------------------
+PAD_T, PAD_W, PAD_L = 0.008, 0.024, 0.045      # a fingertip pad box: thickness, width across the jaw, length
+
+
+def pad_boxes(robot, pad_tip):
+    """Both hands' finger pads as oriented boxes (centre, axes, half-sizes), from the measured joints and
+    finger travel through the URDF's forward kinematics at the runner's arm bases (station.BASES)."""
+    from yam_arena import ik, station
+    boxes = []
+    for side in ("left", "right"):
+        q = np.asarray(robot[side]["joints"], float)
+        pos, R = ik.tcp_pose(q, np.asarray(station.BASES[side], float))
+        half = abs(float(robot[side]["fingers"][0]))
+        tip = pos + R[:, 2] * pad_tip
+        for sgn in (-1.0, 1.0):
+            c = tip + R[:, 0] * sgn * (half + PAD_T / 2) - R[:, 2] * (PAD_L / 2)
+            boxes.append((c, R.copy(), np.array([PAD_T / 2, PAD_W / 2, PAD_L / 2])))
+    return boxes
+
+
+def segment_box_distance(a, b, box, n=81):
+    c, R, h = box
+    t = np.linspace(0.0, 1.0, n)[:, None]
+    local = (a + t * (b - a) - c) @ R
+    return float(np.linalg.norm(np.maximum(np.abs(local) - h, 0.0), axis=1).min())

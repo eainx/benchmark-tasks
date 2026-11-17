@@ -29,7 +29,7 @@ NAME = "zip-top-bag-seal"
 INSTRUCTION = json.loads((_here / "task.json").read_text())["instruction"]
 HZ = 20
 MAX_STEPS = 1600
-OBJECT_NAMES = ("bag",)
+OBJECT_NAMES = ("bag", *(f"coin{i + 1}" for i in range(6)))
 
 DOWN = simkit.patch_demo()
 
@@ -44,7 +44,8 @@ def make_environment(embodiment, device, control_hz=HZ):
     from yam_arena import scene as yscene
 
     objects = yscene.task_room("station", embodiment.rig.top_cam)
-    specs = (B.board_object(), B.knife_object(), B.scraps_object(), B.bowl_object(), B.bag_box_object(), B.bag_object())
+    specs = (B.board_object(), B.scraps_object(), B.bowl_object(), B.bag_box_object(), B.bag_object(),
+             *(B.coin_object(i) for i in range(len(B.COINS))))
     objects += [yscene.task_object(s) for s in specs]
     cfg = IsaacLabArenaEnvironment(name="yam_zip_top_bag_seal", scene=Scene(objects), embodiment=embodiment,
                                    env_cfg_callback=yscene.env_cfg_callback(control_hz))
