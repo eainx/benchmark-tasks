@@ -79,8 +79,8 @@ port to radiator support, port to bench) and adjust to the coordinates above bef
 - Touching the new bulb's glass caps the score at 0.5. Only actual contact counts, in both kinds of trial.
   A real trial counts it when any frame of the wrist or overview videos shows a finger on the capsule, or
   when the capsule shows a smudge afterwards (held against a lamp, before and after). In simulation it
-  counts when a finger pad's surface reaches the capsule (within 0.5 mm, the simulator's contact
-  tolerance). A near miss is not penalised in either. A bulb or the connector falling off the bench
+  counts only on geometric overlap: a finger pad's box entering the capsule (signed distance
+  below zero). Any positive gap, however small, is a near miss. A near miss is not penalised in either. A bulb or the connector falling off the bench
   scores 0.
 
 A real trial is scored by eye and with a ruler: bulb out and set down, new bulb turned home (its socket

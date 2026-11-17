@@ -13,8 +13,9 @@ OUT_MM = 20.0                         # the old bulb drawn at least this far off
 AWAY_MM = 15.0                        # ... and kept at least this far off it (not put back into the port)
 CLEAR_NEW = 0.08                      # finger pads at least this far from the new bulb's and the connector's surfaces
 CLEAR_OLD = 0.05                      # ... and from the old bulb's
-GLASS_MM = 0.5                        # a finger pad's surface reaching the quartz capsule (contact tolerance): touched;
-                                      # a near miss is not contact, as on the real trial's video and residue check
+# Glass contact is geometric overlap only: a finger pad's box must actually enter the quartz capsule
+# (signed distance below zero). Any positive gap, however small, is a near miss and is not contact,
+# as on the real trial's video and residue check.
 REST_V = 0.02                         # m/s: the old bulb at rest ...
 REST_W = 0.20                         # rad/s: ... and not rolling or spinning
 BULB_R = 0.020                        # a bulb's extent about its axis (flange radius)
@@ -66,7 +67,7 @@ class TrialScorer:
         g0, g1 = H.capsule_segment(new)
         glass = min(_segment_box(g0, g1, b) for b in boxes) - H.CAPSULE_R
         self.glass_min = min(self.glass_min, glass)
-        if glass < GLASS_MM / 1000:
+        if glass < 0.0:
             self.touched = True
         for p in (old, new, conn):
             if p[2] < H.TOP - 0.02:                    # off the bench
