@@ -1,5 +1,5 @@
 {
-  "title": "Turn a self-centring steering wheel to full lock hand over hand, never letting go with both hands, hold it, then release it to spring back to centre",
+  "title": "Turn a self-centring steering wheel to full lock hand over hand, hold it, then let it spring back to centre",
   "category": "Impact on jobs",
   "keywords": [
     "steering wheel",
@@ -19,6 +19,6 @@
   "run_limit": "1400 control steps (70 seconds at 20 Hz)",
   "reset_notes": "Fixed pose, no randomisation: wheel straight ahead at rest (the spring returns it there); arms at their rest poses.",
   "fidelity": "PhysX 240 Hz. The wheel is one rigid body on a free revolute axle along the column, with damping and bearing friction; it moves only by finger contacts on its rim (32 hidden capsules round the 28 mm torus). PhysX revolute limits and drive targets wrap at 180 deg, so the centring spring (1.6 N m at 450 deg) and the stiff 450 deg stops are applied each control step as a torque from the measured, unwrapped turn. A vehicle's self-centring is stood in for by that spring.",
-  "scores": "Dream-1 run: 0 after 321 steps (16.05 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 1228 steps.",
-  "media": "M-JSCN97"
+  "scores": "Dream-1 run: 0 after 225 steps (11.25 simulated seconds); termination: task_budget_limit. Scripted/teleoperated demo: 1 after 1228 steps.",
+  "media": "M-SARQS7"
 }
