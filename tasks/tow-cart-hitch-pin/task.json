@@ -1,0 +1,24 @@
+{
+  "title": "Couple two tow carts: hold the drop pin up, swing the drawbar eye into the clevis under it, let the pin fall through",
+  "category": "Impact on jobs",
+  "keywords": [
+    "material handling",
+    "tow cart",
+    "tugger train",
+    "pin hitch",
+    "clevis",
+    "drawbar eye",
+    "drop pin",
+    "bimanual",
+    "hold and align"
+  ],
+  "instruction": "Hitch the cart behind to the cart in front.",
+  "context": "Industrial truck and tractor operators (about 780,000 US workers) and hand material movers couple carts into tugger trains many times a shift; O*NET lists 'Hook tow trucks to trailer hitches and fasten attachments' as a core task (53-7051.00). A pin hitch is coupled by hand: the drop pin is drawn up out of the lead cart's clevis jaw and kept up, the trailing cart's drawbar is swung on its pivot until its eye sits in the jaw exactly under the pin, and the pin is let fall through the eye and the lower plate. The pin only passes a centred eye (a 19 mm pin in a 26 mm eye), so one hand has to hold the eye in place against the drawbar's swing while the other drops the pin.",
+  "setup": "Bench top is z = 0.7475 m and plays the shop floor; everything is real size. Two steel tow carts stand nose to tail on 4 in (100 mm) swivel casters, as cropped sections (their far ends are not modelled): the lead cart (safety-yellow 50 mm box-section frame, 500 mm wide across x 0.15-0.65, steel tread-plate deck 160 mm up) on the right, its rear crossmember's face at y -0.110; the trailing cart (blue frame, same size) on the left, its front crossmember at y 0.490. On the lead cart's rear, a clevis jaw: two 12 mm black steel plates (100 x 125 mm, rounded noses), welded 45 mm apart (lower plate top 80 mm above the floor), each with a 21 mm hole on the pin axis at (0.320, -0.040). Seated through both holes, a zinc-plated 3/4 in (19 mm) drop hitch pin, 0.36 kg, with a 25 mm collar and an 80 mm T-handle crossbar (15 mm) 179 mm above the floor; it slides only along its axis, and lifted 62 mm its end clears the eye. The trailing cart's drawbar: a 32 mm black steel bar, 2.2 kg, on a vertical pivot bolt in a bracket on that cart's front at (0.320, 0.460), held level at the jaw's mid-height (102.5 mm), with a red grip sleeve 245-355 mm from the pivot and a 25 mm thick forged eye (26 mm hole, 72 mm across) 500 mm from the pivot. As left the drawbar is swung 22 degrees toward the arms, its eye 190 mm from the pin's axis and outside the jaw.",
+  "scoring": "Measured from the drawbar's and pin's poses and the hands' TCPs. Eye offset = horizontal distance from the eye's centre to the pin's axis. 0.25: the eye is in the jaw under the pin (offset <= 8 mm, eye level within 6 mm). 0.5: the pin has gone into the eye (offset <= 4.5 mm and the pin's end at least 3 mm below the eye's top face). 0.75: the pin is fully down through the eye: its collar within 3 mm of resting on the upper plate. 1.0: and both hands have let go: each TCP at least 60 mm from the pin's T-handle and from the drawbar, held 1 s. The pin dropped with the eye off centre lands on the eye and stands 62 mm proud (0.25 at most); the pin seated with no eye in the jaw scores 0. In a real trial: pin head down on the plate (photo), the eye visibly round the pin, hands off; a ruler gives the pin's height.",
+  "run_limit": "1,200 control steps (60 seconds at 20 Hz)",
+  "reset_notes": "Fixed start, no randomisation: pin seated in the empty jaw, drawbar swung 22 degrees off line toward the arms (eye about 190 mm from the jaw). Reset: lift the pin, swing the drawbar back out to the floor mark, drop the pin (about 20 s).",
+  "fidelity": "PhysX 240 Hz, rigid bodies. The pin rides a frictionless prismatic joint on its axis (standing in for its 1 mm-clearance holes), falls under gravity and stops on real contact with the plate or the eye. The drawbar turns on a damped vertical revolute joint; a real tongue also pitches and is spring-balanced level, so pitch is locked here. Carts are fixed (braked) cropped sections; casters are visual.",
+  "scores": "Dream-1 run: 0 after 561 steps (28.05 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 338 steps.",
+  "media": "M-RWUCJJ"
+}
