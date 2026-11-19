@@ -1,8 +1,8 @@
 # steering-hand-over-hand
 
-**Instruction:** "Turn the steering wheel all the way to the left and hold it there."
+**Instruction:** "Turn the steering wheel all the way to the left, hold it there for two seconds, then let go and let it spring back to straight ahead."
 
-A 380 mm steering wheel sits on a raked column on a bench test stand, with an instrument binnacle behind it. A 25 mm band of yellow marking tape on the rim marks 12 o'clock when the wheel is straight, and a white index line on top of the column shroud is the fixed reference it is read against. A torsion spring in the column pulls it back to straight ahead, standing in for a moving vehicle's self-centring. Full lock is 1.25 turns (450 deg) left. The wheel is turned hand over hand: one hand holds the rim against the spring while the other takes a new grip further round, and both hands are never off the rim together, or the wheel spins back. At the lock it is held for 2 s.
+A 380 mm steering wheel sits on a raked column on a bench test stand, with an instrument binnacle behind it. A 25 mm band of yellow marking tape on the rim marks 12 o'clock when the wheel is straight, and a white index line on top of the column shroud is the fixed reference it is read against. A torsion spring in the column pulls it back to straight ahead, standing in for a moving vehicle's self-centring. Full lock is 1.25 turns (450 deg) left. The wheel is turned hand over hand: one hand holds the rim against the spring while the other takes a new grip further round, and both hands are never off the rim together, or the wheel spins back. At the lock it is held for 2 s, then released, and the spring returns the wheel to straight ahead.
 
 ## Demo
 
@@ -23,7 +23,7 @@ The turn is followed from the wheel's pose, unwrapped across full turns, positiv
 | 0.1 each | Quarter turn reached: 85, 175, 265, 355 deg |
 | 0.6 | Full lock reached: 440 deg or more |
 | 0.8 | Held at full lock for 2 s |
-| 1.0 | Held, then let go: both hands 50 mm or more clear of the rim, and the returned wheel at rest (under 1 cm/s and 0.2 rad/s) for 1 s |
+| 1.0 | Held, then let go: both hands 50 mm or more clear of the rim, and the wheel back at centre (within 10 deg of straight ahead) and at rest (under 1 cm/s and 0.2 rad/s) for 1 s |
 
 While the wheel is being turned, a hand counts as on the rim when both of its finger pads lie within 6 mm of the rim's surface and its jaws are closed under 16 mm a side. The pads are measured from the joints at `station.BASES`. Two things count as a let-go:
 
@@ -32,18 +32,34 @@ While the wheel is being turned, a hand counts as on the rim when both of its fi
 
 After a let-go, no hold credit is given (the score is capped at 0.6). These checks only observe; they trigger nothing in the simulation. A wheel torn off its column (hub moved more than 5 mm) is `dropped` and scores 0. The scorer returns `clear` and `dropped`.
 
-**Real trial:** the rim's tape band, read against the shroud's index line (or a protractor ring on the column), gives the turn; the hold, the hands and any slip-back are seen on video.
+**Real trial:** the rim's tape band, read against the shroud's index line and the protractor ring on the shroud face, gives the turn, including the return to within 10 deg of straight ahead; the hold, the release, the hands and any slip-back are seen on video.
 
-## Real parts
+## Real parts and build
 
-| Part | Description |
+The column, centring spring and stops are built from stock parts to the drawing [`drawings/column.svg`](drawings/column.svg) (all dimensions in mm; `drawings/make_drawing.py` regenerates it).
+
+![Steering test column build drawing](drawings/column.svg)
+
+| Part | Specification |
 |---|---|
 | Wheel | 380 mm (15 in) three-spoke steering wheel, 28 mm leather-wrapped rim, about 1.4 kg; any 380 mm aftermarket wheel on a 6-bolt hub adapter. |
 | Centre mark | A 25 mm band of yellow vinyl marking tape wrapped round the rim at 12 o'clock with the wheel straight, and a white paint line on top of the column shroud, as wheel-alignment shops mark a wheel. |
-| Column and stand | A steering column (e.g. a salvaged van column or a universal tilt column) on a steel stand bolted to the bench, raked 25 deg (wheel plane 65 deg from horizontal), wheel centre 200 mm over the bench. |
-| Centring spring | A torsion (clock) spring between column and shaft, set to about 1.6 N m at 450 deg. Check with a torque wrench on the hub, or a spring scale on the rim: about 8.4 N at the 190 mm rim radius at full lock. |
-| Stops | Mechanical stops at +/-450 deg, as in the steering gear. |
+| Protractor ring | A printed 360 deg ring (90 mm), stuck on the shroud face behind the hub, zero at the index line. |
+| Stand | 360 x 220 x 10 steel base plate, bolted (4 x M8) or G-clamped to the bench; a 50 x 50 x 3 square-tube post welded to it, with a saddle clamp holding the column tube at 25 deg rake, wheel centre 200 mm over the bench. |
+| Column | 60 x 3 steel tube, 300 long; a 20 mm steel shaft on two 6204-2RS bearings (20 x 47 x 14) pressed into end bushes; the 6-bolt hub adapter on the top end and a 20-tooth module 1.5 steel spur gear keyed on the lower end. |
+| Stop gear | An 80-tooth module 1.5 steel spur gear (120 mm pitch, 12 mm face) on a 12 mm stub shaft (two 6001-2RS bearings) in a 195 x 165 x 6 steel plate on the lower end of the tube, at 75 mm centres. The 4:1 reduction turns +/-450 deg (1.25 turns) at the wheel into +/-112.5 deg at the stop gear, so ordinary single-turn stops and an ordinary torsion spring do the work. |
+| Stops (+/-450 deg) | An M8 pin standing 15 mm proud of the stop gear at 50 mm radius; two M8 x 40 socket set screws with jam nuts in 20 x 20 x 30 steel blocks on standoffs, set at +/-112.5 deg of the gear. Adjustment: 1 mm of screw travel is 4.6 deg at the wheel; set each lock to 450 +/- 5 deg on the protractor ring and lock the jam nut. |
+| Centring spring | A double-leg torsion spring on the stub shaft (over a 30 mm bush): music wire 4.5 mm, 36 mm mean coil, 11 active coils, 60 mm straight legs, crossed. Both legs straddle a pin on the gear (40 mm radius) and a fixed pin on the plate at the same place ("scissor" return, as on throttle and joystick returns): turning either way, one leg is carried and the other held, so the spring always winds and pulls the wheel back to centre. Rate 3.3 N m/rad at the gear = 0.20 N m/rad at the wheel (divided by 4 squared), 1.6 N m at 450 deg; wire stress 0.79 GPa at full lock (music wire allows about 1.4 GPa). |
 | Instrument binnacle | A dark moulded two-dial cluster housing behind the wheel; recognition only. |
+
+**Commissioning checks** (recorded before each trial session):
+
+1. A spring scale hooked on the rim at 9 o'clock and pulled tangentially at full lock reads 8.4 +/- 1 N (move the spring pin between 36 and 44 mm radius to adjust).
+2. Turned 90 deg left and let go, the wheel comes back within 10 deg of straight ahead (otherwise reduce gear or bearing drag).
+3. At each lock the tape reads 450 +/- 5 deg on the protractor ring.
+4. Free play at the rim with both spring pins seated is under 5 mm.
+
+The gear stage's inertia reflected to the wheel (about 0.0001 kg m^2) is under 1% of the wheel's, so the simulation applies the same spring and stops directly about the column axis (below).
 
 ## Simulation
 

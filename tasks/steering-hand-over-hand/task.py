@@ -1,4 +1,4 @@
-"""Van / truck cab: "Turn the steering wheel all the way to the left and hold it there."
+"""Van / truck cab: "Turn the steering wheel all the way to the left, hold it there for two seconds, then let go and let it spring back to straight ahead."
 
 A 380 mm steering wheel on a raked column (a bench test stand with a dash panel behind it) springs back to
 straight ahead: a torsion spring in the column stands in for a moving vehicle's self-centring, about 1.6 N m at

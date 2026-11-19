@@ -1,4 +1,5 @@
-"""Scorer for "Turn the steering wheel all the way to the left and hold it there.".
+"""Scorer for "Turn the steering wheel all the way to the left, hold it there for two seconds, then let go and
+let it spring back to straight ahead.".
 
 The wheel's turn is followed step by step from its measured pose, unwrapped across full turns, positive to the
 left (counter-clockwise as the driver sees it). Full lock is 450 deg.
@@ -7,8 +8,8 @@ Ladder (milestones latch once reached):
   0.1   each quarter turn reached (within 5 deg): 85, 175, 265 and 355 deg (0.4 in all)
   0.6   full lock reached: 440 deg or more
   0.8   held at full lock: 440 deg or more for 2 s without a break
-  1.0   held as above, then let go: at the end both hands are 50 mm or more clear of the rim and the wheel,
-        returned by its spring, is at rest (under 1 cm/s and 0.2 rad/s) for 1 s
+  1.0   held as above, then let go: both hands are 50 mm or more clear of the rim and the wheel, returned by its
+        spring, is back at centre (within 10 deg of straight ahead) and at rest (under 1 cm/s and 0.2 rad/s) for 1 s
 Hand over hand: while the wheel is being turned (from 10 deg until the hold is reached), a hand counts as on the
 rim when its jaws are closed on it: both its finger pads (measured from the joints at station.BASES) lie within
 6 mm of the rim's surface (pad mid-thickness, 4 mm behind the pad face) and the jaws are under 16 mm apart a side.
@@ -31,6 +32,7 @@ HZ = 20
 HOLD_FRAMES = 40
 REST_FRAMES = 20
 LOCK_OK = 440.0
+CENTRE_TOL = 10.0                                          # deg either side of straight ahead
 
 
 def _box_pts(box):
@@ -114,7 +116,8 @@ class TrialScorer:
         lv = float(np.linalg.norm(np.asarray(_field(o, "lin_vel"), float)))
         av = float(np.linalg.norm(np.asarray(_field(o, "ang_vel"), float)))
         still = lv < 0.01 and av < 0.2
-        self.rest = self.rest + 1 if (self.held and clear and still) else 0
+        centred = abs(self.turn) <= CENTRE_TOL
+        self.rest = self.rest + 1 if (self.held and clear and still and centred) else 0
         score = 0.1 * sum(self.quarters)
         if self.lock:
             score = 0.6
@@ -129,5 +132,5 @@ class TrialScorer:
                 "max_turn_deg": round(self.max_turn, 1), "hold_frames": self.hold_run, "let_go": bool(self.let_go),
                 "on_rim": on, "off_frames": self.off_run, "milestones": {"quarters": sum(self.quarters), "lock": self.lock,
                                                                           "held": self.held},
-                "wheel_ang_vel": round(av, 3), "hub_off_mm": round(1000 * hub_off, 2), "rest_frames": self.rest,
+                "wheel_ang_vel": round(av, 3), "hub_off_mm": round(1000 * hub_off, 2), "rest_frames": self.rest, "centred": bool(abs(self.turn) <= CENTRE_TOL),
                 "pad_gap_mm": round(1000 * gap, 1), "clear": bool(clear), "dropped": bool(self.fell)}
