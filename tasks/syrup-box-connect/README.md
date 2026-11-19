@@ -2,8 +2,10 @@
 
 **Instruction:** "Connect the new syrup box."
 
-Fast-food back room. Two 5-gallon bag-in-box soda syrup cartons stand on the bench, knock-out faces toward
-the arms. The empty one's spout still wears the syrup line's quick-disconnect connector; the new one's
+Fast-food back room. Two 5-gallon bag-in-box soda syrup cartons stand in a row on a low wire shelf on the
+bench, the shelf turned so their knock-out faces look toward the right arm's side (30 degrees round toward the
+arms); the new one is nearer the arm bases, the empty one beyond it.
+The syrup line runs from the pump board behind the shelf, under the shelf's deck, to the connector. The empty one's spout still wears the syrup line's quick-disconnect connector; the new one's
 flap is pushed in and its spout pulled out through the opening. The connector's collar is turned a quarter
 turn and the connector pulled off the empty spout; the new spout, which rides on the slack bag and gives
 way when pushed, is held by its flange while the connector is pushed onto it and its collar turned a
@@ -18,13 +20,13 @@ US). One hand has to hold the spout, because it sits on a floppy bag.
 
 | object | real part | size / mass |
 |---|---|---|
-| wire rack | low chrome wire shelf, 25 mm grooved posts | 340 x 700 mm deck, 120 mm up |
+| wire rack | low chrome wire shelf, 25 mm grooved posts | 610 x 356 mm (24 x 14 in) deck, 120 mm up |
 | syrup cartons (2) | 5-gallon bag-in-box cola syrup carton, white clay-coated corrugated board, printed (fictional brand "Velmora"; artwork in textures/, made by make_textures.py) | 273 x 273 x 394 mm; new one about 24 kg (fixed) |
 | knock-out | round perforated flap, pushed in | 82 mm, centre 65 mm up |
 | bag spout | polyethylene BIB fitting with O-ring land (a QCD-type bag fitting, as used with industry-standard QCD syrup connectors) | 46 mm flange, 25 mm spout, 40 mm long |
 | connector | quarter-turn QCD-type BIB coupler (as made by the main BIB suppliers), acetal body, red locking collar, 90-degree elbow barb | 32 mm body, 40 mm collar, 60 mm long, 70 g |
 | syrup line | translucent PVC beverage tubing on a 90-degree 3/8 in elbow barb, stainless clamp | 9.5 mm OD, 1.14 m |
-| pump board | plywood, gas-driven BIB syrup pump screwed to it | 560 x 480 x 18 mm; pump 150 x 95 x 80 mm |
+| pump board | plywood, gas-driven BIB syrup pump screwed to it | 440 x 450 x 18 mm; pump 150 x 95 x 80 mm |
 
 ## Scoring
 
@@ -53,9 +55,13 @@ connector dropped below the shelf's deck caps it at 0.25. Run limit: 1,200 contr
   colliders the fingers grip.
 - The syrup line is a physical, colliding chain: 24 capsule links (9.5 mm OD, about 47 mm each, 5 g) joined by D6
   joints (no translation; bend within 60 degrees and twist within 30 degrees against a light spring-damper), fixed at
-  the pump's inlet and jointed to the connector's elbow barb. It lies in a loose loop on the bench, drags and catches
+  the pump's inlet and jointed to the connector's elbow barb. It runs under the shelf's deck and lies along the bench in front of the cartons, drags and catches
   like the real line; the score is capped at 0.5 if it is pulled taut (its ends more than 95% of its length apart).
 - The carton print is an image texture of a made-up brand ("Velmora"), drawn by `make_textures.py`.
+- Layout: the cartons' knock-out faces look toward the right arm's side (outward normal 30 degrees off -y,
+  toward the arms), so the spouts, the connector and the hands working them face the overview camera; the right
+  hand works the connector along the spouts' axis, the left hand reaches round the new carton's end and holds the
+  new spout's flange from above and to the side.
 - The fitting is pulled out 45 mm through the knock-out on the bag's neck (as when changing a box) so a hand can straddle its flange.
 
 ## Real trials

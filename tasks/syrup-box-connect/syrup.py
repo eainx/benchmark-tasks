@@ -1,13 +1,17 @@
 """Geometry for connecting a new bag-in-box soda syrup carton (real size).
 
-Fast-food back room. Two 5-gallon (19 L) bag-in-box syrup cartons stand side by side on the bench, their
-knock-out flaps toward the arms. The left one is new: its flap has been pushed in and the bag's spout
-pulled out through the hole. The right one is empty: its spout still wears the syrup line's quick-
-disconnect connector. Behind them, on a plywood board, the syrup pump the line runs back to. The
+Fast-food back room. Two 5-gallon (19 L) bag-in-box syrup cartons stand in a row on a low wire shelf on the
+bench, the shelf turned so their knock-out faces look toward the right arm's side (30 degrees off -y, toward the
+arms). The near one (toward the arm bases) is new: its
+flap has been pushed in and the bag's spout pulled out through the hole. The far one is empty: its spout still
+wears the syrup line's quick-disconnect connector. Behind them, on a plywood board, the syrup pump the line
+runs back to (the line runs under the shelf). The
 connector's collar is turned a quarter turn counter-clockwise and the connector drawn off the empty
 spout; then, with the new spout held by its flange (it rides on the slack bag and gives way when pushed),
 the connector is pushed onto it and its collar turned a quarter turn clockwise to lock.
-Frame: metres, x away from the arm bases, y left, z up; TOP is the bench.
+Frame: metres, x away from the arm bases, y left, z up; TOP is the bench. The carton, spout and connector
+geometry is built in a carton frame (knock-out face toward -x) and turned by RZ (YAW about z) into the world,
+so the spouts point along -AX; the moving bodies spawn unrotated, their meshes, colliders and joint frames turned.
 
 Real parts:
   carton     5-gallon bag-in-box syrup carton, 273 x 273 x 394 mm (10.75 x 10.75 x 15.5 in),
@@ -48,11 +52,14 @@ PLY = (0.78, 0.66, 0.48)
 BRASS = (0.78, 0.62, 0.30)
 
 # -- cartons -----------------------------------------------------------------------------------------
-BOX = (0.273, 0.273, 0.394)          # x (depth, flap face toward -x), y, z
-BOX_X = 0.470                        # centres
-NEW_Y = -0.165
-OLD_Y = 0.165
-FRONT_X = BOX_X - BOX[0] / 2         # the flap face
+BOX = (0.273, 0.273, 0.394)          # carton frame: x (depth, flap face toward -x), y, z
+YAW = math.radians(60.0)             # carton frame -> world: the knock-out faces look 30 deg off -y, toward the arms
+RZ = np.array([[math.cos(YAW), -math.sin(YAW), 0.0], [math.sin(YAW), math.cos(YAW), 0.0], [0.0, 0.0, 1.0]])
+Q_RZ = (math.cos(YAW / 2), 0.0, 0.0, math.sin(YAW / 2))              # (w, x, y, z)
+AX = RZ @ np.array([1.0, 0.0, 0.0])  # world: from a spout into its carton
+ROW = RZ @ np.array([0.0, -1.0, 0.0])  # world: along the row, from the new carton to the empty one
+NEW_C = (0.358, 0.036)               # the new carton's centre (world x, y), nearer the arm bases
+OLD_C = tuple(float(v) for v in np.asarray(NEW_C) + 0.275 * ROW[:2])   # the empty one's, beside it (2 mm apart)
 HOLE_W, HOLE_H = 0.090, 0.070        # knock-out opening (y, z)
 HOLE_Z0 = 0.030                      # its bottom edge above the carton's base
 HOLE_ZC = HOLE_Z0 + HOLE_H / 2
@@ -70,18 +77,46 @@ CONN_L = 0.060
 COLLAR_R = 0.020
 COLLAR_L = 0.022
 ENGAGE = 0.024                       # the connector covers this much of the spout when on
-BARB = (-0.040, 0.030, 0.0)          # the elbow barb's tip in the connector's frame (the line's end)
+BARB = (-0.040, 0.0, -0.030)         # the elbow barb's tip in the connector's carton frame (the line's end): the elbow
+                                     # points down when the connector is locked on, so the line hangs from it
+BARB_W = tuple(float(v) for v in RZ @ np.asarray(BARB))   # ... in its body frame (world-aligned at spawn)
 
 
-def spout_axis(y):
-    """Flange-face centre of a spout on the carton at y (the spout points along -x)."""
-    return np.array([FRONT_X - SPOUT_OUT, y, BASE + HOLE_ZC])
+def spout_axis(c):
+    """Flange-face centre of a spout on the carton centred at world (x, y) c (the spout points along -AX)."""
+    return np.array([c[0], c[1], BASE + HOLE_ZC]) - AX * (BOX[0] / 2 + SPOUT_OUT)
 
 
-def connector_pos(y):
-    """The connector's centre when it is on the spout of the carton at y."""
-    tip = spout_axis(y)[0] - SPOUT_L
-    return np.array([tip + ENGAGE - CONN_L / 2, y, BASE + HOLE_ZC])
+def connector_pos(c):
+    """The connector's centre when it is on the spout of the carton centred at c."""
+    return spout_axis(c) - AX * (SPOUT_L - ENGAGE + CONN_L / 2)
+
+
+def quat_rot(q):
+    """Rotation matrix of a quaternion (x, y, z, w)."""
+    x, y, z, w = (float(v) for v in q)
+    return np.array([[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+                     [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+                     [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)]])
+
+
+def rz_vms(vms, R=RZ):
+    """Visual meshes built in the carton frame, turned into the world's orientation."""
+    out = []
+    for vm in vms:
+        out.append((vm[0], np.asarray(vm[1], float) @ np.asarray(R).T, *vm[2:]))
+    return tuple(out)
+
+
+def rz_pieces(pieces, yaw=YAW):
+    """Colliders built in the carton frame (rolls about x only), turned by yaw about z likewise."""
+    R = np.array([[math.cos(yaw), -math.sin(yaw), 0.0], [math.sin(yaw), math.cos(yaw), 0.0], [0.0, 0.0, 1.0]])
+    out = []
+    for p in pieces:
+        assert p.rot[1] == 0.0 and p.rot[2] == 0.0
+        out.append(_replace(p, offset=tuple(float(v) for v in R @ np.asarray(p.offset, float)),
+                            rot=(float(p.rot[0]), 0.0, float(yaw))))
+    return tuple(out)
 
 
 def _vm(name, mesh, color, material=None, opacity=1.0, offset=(0, 0, 0), R=None):
@@ -219,13 +254,13 @@ def _carton_colliders():
     return _colliders(P)
 
 
-def carton_object(name, y, empty):
+def carton_object(name, c, empty):
     from simkit import Part as _P
-    pos = (BOX_X, y, BASE + BOX[2] / 2)
-    pieces = _carton_colliders()
-    vm = carton_vmeshes(empty)
+    pos = (c[0], c[1], BASE + BOX[2] / 2)
+    pieces = rz_pieces(_carton_colliders())
+    vm = rz_vms(carton_vmeshes(empty))
     if empty:                                                            # the empty carton's spout is part of it
-        vm = vm + tuple(_shift(spout_vmeshes("old_"), spout_axis(y) - np.asarray(pos)))
+        vm = vm + tuple(_shift(rz_vms(spout_vmeshes("old_")), spout_axis(c) - np.asarray(pos)))
     return _P(name, pos=pos, size=(0.01, 0.01, 0.01), exact_z=True, color=KRAFT, friction=(0.6, 0.5),
               pieces=pieces, hide_root=True, vmeshes=vm)
 
@@ -254,13 +289,13 @@ def spout_vmeshes(prefix=""):
 def new_spout_object():
     """The new carton's spout, pulled out through its opening: rides on the slack bag, so it gives way
     along its axis when pushed (a sprung slide, a disclosed stand-in for the bag's slack)."""
-    pos = tuple(float(v) for v in spout_axis(NEW_Y))
+    pos = tuple(float(v) for v in spout_axis(NEW_C))
     P = [Piece("cylinder", (SPOUT_R, SPOUT_L, SPOUT_R), (-SPOUT_L / 2, 0.0, 0.0), axis="X"),
          Piece("cylinder", (FLANGE_R, 0.004, FLANGE_R), (0.002, 0.0, 0.0), axis="X")]
     return Part("new_spout", pos=pos, size=(0.010, 0.010, 0.010), exact_z=True, mass=0.060, color=PE_WHITE,
-                friction=(0.7, 0.6), contact_offset=0.002, pieces=_colliders(P), hide_root=True,
-                vmeshes=spout_vmeshes("new_"),
-                spring=Spring(axis="X", lower=-0.015, upper=0.045, stiffness=120.0, damping=4.0, target=0.0))
+                friction=(0.7, 0.6), contact_offset=0.002, pieces=rz_pieces(_colliders(P)), hide_root=True,
+                vmeshes=rz_vms(spout_vmeshes("new_")),
+                spring=Spring(axis="X", frame_rot=Q_RZ, lower=-0.015, upper=0.045, stiffness=120.0, damping=4.0, target=0.0))
 
 
 # -- connector -----------------------------------------------------------------------------------------
@@ -283,11 +318,11 @@ def connector_vmeshes():
     for sy in (-1, 1):
         V.append(_vm(f"wing{sy}", M.rbox((0.014, 0.012, 0.004), 6), COLLAR, "satin",
                      offset=(h - COLLAR_L / 2 - 0.002, sy * (COLLAR_R + 0.005), 0.0)))
-    # the 90-degree elbow barb out of its back (toward local +y) and the stainless clamp on it
-    elbow = M.bend([(-h + 0.004, 0.0, 0.0), (-h - 0.010, 0.0, 0.0), (-h - 0.010, BARB[1] - 0.004, 0.0)], 0.008, 8)
+    # the 90-degree elbow barb out of its back (toward local -z) and the stainless clamp on it
+    elbow = M.bend([(-h + 0.004, 0.0, 0.0), (-h - 0.010, 0.0, 0.0), (-h - 0.010, 0.0, BARB[2] + 0.004)], 0.008, 8)
     V.append(_vm("elbow", M.tube(elbow, 0.0055, 16), BODY, "satin"))
-    V.append(_vm("clamp", M.revolve([(0.0072, 0.0), (0.0080, 0.0), (0.0080, 0.006), (0.0072, 0.006)], n=32, axis="Y"),
-                 (0.78, 0.79, 0.80), "steel", offset=(-h - 0.010, BARB[1] - 0.014, 0.0)))
+    V.append(_vm("clamp", M.revolve([(0.0072, 0.0), (0.0080, 0.0), (0.0080, 0.006), (0.0072, 0.006)], n=32, axis="Z"),
+                 (0.78, 0.79, 0.80), "steel", offset=(-h - 0.010, 0.0, BARB[2] + 0.008)))
     return tuple(V)
 
 
@@ -315,22 +350,24 @@ def connector_object():
     """On the empty carton's spout: turns on it about the spout's axis (a hinge, -95..+5 degrees) and comes off
     once a quarter turn counter-clockwise (task.Dynamics frees it). A second hinge to the new spout is made at
     spawn and switched on when the connector is pushed onto that spout square."""
-    pos = connector_pos(OLD_Y)
-    on_new = connector_pos(NEW_Y) - spout_axis(NEW_Y)
+    pos = connector_pos(OLD_C)
+    on_new = connector_pos(NEW_C) - spout_axis(NEW_C)
     return Part("connector", pos=tuple(float(v) for v in pos), size=(0.005, 0.005, 0.005), shape="sphere",
                 exact_z=True, mass=0.070, color=BODY, friction=(0.9, 0.8), contact_offset=0.002,
-                pieces=connector_colliders(), hide_root=True, vmeshes=connector_vmeshes(),
-                hinge=Hinge(pivot=tuple(float(v) for v in pos), axis="X", damping=0.5, lower_deg=-95.0, upper_deg=5.0),
-                hinge2=Hinge(pivot=tuple(float(v) for v in connector_pos(NEW_Y)), axis="X", damping=0.002,
-                             lower_deg=-1e6, upper_deg=1e6, parent="new_spout",
-                             parent_pos=tuple(float(v) for v in spout_axis(NEW_Y)),
+                pieces=rz_pieces(connector_colliders()), hide_root=True, vmeshes=rz_vms(connector_vmeshes()),
+                hinge=Hinge(pivot=tuple(float(v) for v in pos), axis="X", damping=0.5, lower_deg=-95.0, upper_deg=5.0,
+                            frame_rot=Q_RZ),
+                hinge2=Hinge(pivot=tuple(float(v) for v in connector_pos(NEW_C)), axis="X", damping=0.002,
+                             lower_deg=-1e6, upper_deg=1e6, parent="new_spout", frame_rot=Q_RZ,
+                             parent_pos=tuple(float(v) for v in spout_axis(NEW_C)),
                              local0=tuple(float(v) for v in on_new), local1=(0.0, 0.0, 0.0), enabled=False),
                 tether=connector_tether(), solver_iters=32)
 
 
 # -- chrome wire BIB rack shelf -------------------------------------------------------------------------------
-RACK = (0.340, 0.700, SHELF_Z)       # deck x, y; deck top height
-RACK_C = (BOX_X, 0.0)
+RACK = (0.610, 0.356, SHELF_Z)       # deck x, y (a 24 x 14 in wire shelf, long side along the row); deck top height
+RACK_C = ((NEW_C[0] + OLD_C[0]) / 2, (NEW_C[1] + OLD_C[1]) / 2)
+RACK_YAW = YAW - math.pi / 2          # its long side along the row
 POST_H = SHELF_Z + 0.012           # a low wire shelf: its posts stop just above the deck
 CHROME = (0.84, 0.85, 0.87)
 
@@ -356,22 +393,23 @@ def rack_object():
         frame.append(M.transform(M.rbox((0.008, dy - 0.020, 0.012), 8), None, (sx * (dx / 2 - 0.004), 0.0, 0.0)))
     for sy in (-1, 1):
         frame.append(M.transform(M.rbox((dx - 0.020, 0.008, 0.012), 8), None, (0.0, sy * (dy / 2 - 0.004), 0.0)))
-    for k in range(int((dy - 0.04) / 0.025) + 1):                      # wires across the deck
-        yy = -dy / 2 + 0.020 + k * 0.025
-        frame.append(M.transform(M.rbox((dx - 0.012, 0.0032, 0.0032), 6, n=8), None, (0.0, yy, 0.004)))
-    for xx in (-0.110, -0.040, 0.040, 0.110):                          # truss wires underneath
-        frame.append(M.transform(M.rbox((0.004, dy - 0.020, 0.018), 6, n=8), None, (xx, 0.0, -0.010)))
+    for k in range(int((dx - 0.04) / 0.025) + 1):                      # wires across the deck (front to back)
+        xx = -dx / 2 + 0.020 + k * 0.025
+        frame.append(M.transform(M.rbox((0.0032, dy - 0.012, 0.0032), 6, n=8), None, (xx, 0.0, 0.004)))
+    for yy in (-0.110, -0.040, 0.040, 0.110):                          # truss wires underneath, along its length
+        frame.append(M.transform(M.rbox((dx - 0.020, 0.004, 0.018), 6, n=8), None, (0.0, yy, -0.010)))
     V.append(_vm("deck", M.merge(*frame), CHROME, "steel"))
     P = [Piece("box", (dx, dy, 0.020), (0.0, 0.0, 0.0), hidden=True)]
     for (px, py) in posts:
         P.append(Piece("cylinder", (0.0125, POST_H, 0.0125), (px, py, POST_H / 2 - (dz - 0.010)), hidden=True))
+    Rr = np.array([[math.cos(RACK_YAW), -math.sin(RACK_YAW), 0.0], [math.sin(RACK_YAW), math.cos(RACK_YAW), 0.0], [0.0, 0.0, 1.0]])
     return Part("rack", pos=pos, size=(0.01, 0.01, 0.01), exact_z=True, color=CHROME, friction=(0.6, 0.5),
-                pieces=tuple(P), hide_root=True, vmeshes=tuple(V))
+                pieces=rz_pieces(P, RACK_YAW), hide_root=True, vmeshes=rz_vms(V, Rr))
 
 
 # -- syrup line, pump board ---------------------------------------------------------------------------------
-# The pump board stands along the bench's left edge (its face toward -y), beside the empty carton, so the
-# cameras see past it.
+# The pump board stands along the bench's left edge (its face toward -y), behind the shelf of cartons; the
+# line runs from the pump down and under the shelf's deck to the cartons' knock-out side.
 BOARD_Y = 0.445
 BOARD = (0.440, 0.018, 0.450)        # x, y, z
 BOARD_C = (0.520, BOARD_Y, TOP + BOARD[2] / 2)
@@ -468,15 +506,16 @@ def _q_from_x(d):
 
 
 def line_rest_points():
-    """The line as it lies at the start: from the pump's inlet down to the bench, a loose loop on the bench,
-    up to the elbow barb of the connector on the empty carton's spout -- resampled into N_LINKS equal links."""
+    """The line as it lies at the start: from the pump's inlet down behind the shelf, under its deck to the front,
+    along the bench in front, up to the elbow barb of the connector on the empty carton's spout -- resampled into N_LINKS equal links."""
     pin = pump_inlet()
-    barb = connector_pos(OLD_Y) + np.asarray(BARB)
+    barb = connector_pos(OLD_C) + np.asarray(BARB_W)
     z0 = TOP + LINE_R + 0.002
-    pts = [pin, pin + (-0.045, 0.0, 0.0), (pin[0] - 0.070, pin[1], pin[2] - 0.080), (0.420, 0.400, z0 + 0.03),
-           (0.360, 0.420, z0), (0.250, 0.440, z0), (0.190, 0.530, z0), (0.110, 0.520, z0), (0.090, 0.420, z0),
-           (0.120, 0.320, z0), (0.150, 0.250, z0),
-           (0.190, 0.235, z0 + 0.04), (barb[0], barb[1] + 0.045, barb[2] - 0.06), (barb[0], barb[1] + 0.020, barb[2]), barb]
+    r = ROW
+    pts = [pin, pin + (-0.045, 0.0, 0.0), (pin[0] - 0.065, pin[1] - 0.010, pin[2] - 0.090), (0.425, 0.370, z0 + 0.030),
+           (0.430, 0.300, z0), (0.445, 0.120, z0), (0.462, -0.080, z0),                 # under the shelf's deck
+           (0.456, -0.195, z0), (0.389, -0.304, z0 + 0.010),                            # a loose bend in front, up to the connector
+           barb - r * 0.030 - (0.0, 0.0, 0.07), barb - (0.0, 0.0, 0.025), barb]
     path = M.bend([np.asarray(p, float) for p in pts], 0.03, 10)
     seg = np.linalg.norm(np.diff(path, axis=0), axis=1)
     cum = np.concatenate([[0.0], np.cumsum(seg)])
@@ -520,10 +559,4 @@ def connector_tether():
     _, qs, pts, _ = line_links()
     Ll = float(np.linalg.norm(pts[-1] - pts[-2]))
     return Tether(parent=f"line_{N_LINKS - 1:02d}", local0=(Ll / 2, 0.0, 0.0), rot0=_qinv(qs[-1]),
-                  local1=tuple(float(v) for v in BARB), swing_deg=75.0, twist_deg=45.0)
-
-
-def quat_x_axis(q):
-    """The local x axis of a body with orientation q (x, y, z, w)."""
-    x, y, z, w = (float(v) for v in q)
-    return np.array([1 - 2 * (y * y + z * z), 2 * (x * y + z * w), 2 * (x * z - y * w)])
+                  local1=BARB_W, swing_deg=75.0, twist_deg=45.0)

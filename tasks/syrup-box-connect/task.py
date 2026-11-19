@@ -1,7 +1,7 @@
 """Fast food back room: "Connect the new syrup box."
 
-Two 5-gallon bag-in-box cola syrup cartons stand on a wire shelf, knock-out faces toward the arms. The empty
-one's spout still wears the syrup line's quick-disconnect connector; the new one's knock-out is pushed in and
+Two 5-gallon bag-in-box cola syrup cartons stand in a row on a wire shelf, knock-out faces toward the right
+arm's side. The empty (far) one's spout still wears the syrup line's quick-disconnect connector; the new one's knock-out is pushed in and
 its spout pulled out through it. The connector is turned a quarter turn counter-clockwise (seen from the
 front) and drawn off the empty spout; the new spout is held by its flange (it rides on the slack bag and gives
 way when pushed), the connector pushed onto it and turned a quarter turn clockwise to lock.
@@ -47,8 +47,8 @@ def make_environment(embodiment, device, control_hz=HZ):
     from yam_arena import scene as yscene
 
     objects = yscene.task_room("station", embodiment.rig.top_cam)
-    specs = (S.rack_object(), S.board_object(), S.carton_object("new_carton", S.NEW_Y, False),
-             S.carton_object("old_carton", S.OLD_Y, True), S.new_spout_object(), *S.line_links()[0], S.connector_object())
+    specs = (S.rack_object(), S.board_object(), S.carton_object("new_carton", S.NEW_C, False),
+             S.carton_object("old_carton", S.OLD_C, True), S.new_spout_object(), *S.line_links()[0], S.connector_object())
     objects += [yscene.task_object(s) for s in specs]
     cfg = IsaacLabArenaEnvironment(name="yam_syrup_box_connect", scene=Scene(objects), embodiment=embodiment,
                                    env_cfg_callback=yscene.env_cfg_callback(control_hz))
@@ -68,7 +68,7 @@ TURNING = 0.004                       # ... while a hand grips and turns it
 
 def collar_centre(pose):
     p = np.asarray(pose, float)
-    return p[:3] + S.quat_x_axis(p[3:7]) * S.COLLAR_X
+    return p[:3] + S.quat_rot(p[3:7]) @ S.AX * S.COLLAR_X
 
 
 def pad_tips(robot):
@@ -86,7 +86,7 @@ def pad_tips(robot):
 class Dynamics:
     """Disclosed stand-ins, from measured poses only; no position targets anywhere, so nothing snaps.
 
-    * Connector on the empty spout: a hinge about the spout's axis (-95..+5 deg) held by a stiff damping drive
+    * Connector on the empty spout: a hinge about the spout's axis (S.AX) (-95..+5 deg) held by a stiff damping drive
       (the collar's detent); a closed hand gripping the collar (pad tips within 25 mm of its centre) lowers the
       damping so the hand can turn it. Turned 85 deg counter-clockwise the lugs are free: the hinge is
       switched off and the connector comes off in the hand.
@@ -111,7 +111,7 @@ class Dynamics:
                 self.j["new"] = prim
         if len(self.j) != 2:
             raise RuntimeError(f"joints not found: {sorted(self.j)}")
-        self.origin = np.asarray(S.connector_pos(S.OLD_Y), float)
+        self.origin = np.asarray(S.connector_pos(S.OLD_C), float)
 
     def _on(self, key, on):
         self.j[key].GetAttribute("physics:jointEnabled").Set(bool(on))
@@ -158,11 +158,13 @@ class Dynamics:
                 self._on("old", False)
                 self.on_old = False
         elif not self.engaged:
-            seat = spout[:3] + (S.connector_pos(S.NEW_Y) - S.spout_axis(S.NEW_Y))
+            seat = spout[:3] + (S.connector_pos(S.NEW_C) - S.spout_axis(S.NEW_C))
             rel = conn[:3] - seat
-            ax = S.quat_x_axis(conn[3:7])
-            tilt = math.degrees(math.acos(float(np.clip(ax[0], -1.0, 1.0))))
-            if math.hypot(rel[1], rel[2]) <= ENGAGE_RADIAL and abs(rel[0]) <= ENGAGE_AXIAL and tilt <= ENGAGE_AXIS_DEG:
+            axial = float(np.dot(rel, S.AX))
+            radial = float(np.linalg.norm(rel - axial * S.AX))
+            ax = S.quat_rot(conn[3:7]) @ S.AX
+            tilt = math.degrees(math.acos(float(np.clip(np.dot(ax, S.AX), -1.0, 1.0))))
+            if radial <= ENGAGE_RADIAL and abs(axial) <= ENGAGE_AXIAL and tilt <= ENGAGE_AXIS_DEG:
                 self._on("new", True)
                 self.engaged = True
                 self.roll_new0 = roll
@@ -174,7 +176,7 @@ class Dynamics:
         return {"on_old": self.on_old, "engaged": self.engaged, "locked": self.locked,
                 "turn_old_deg": round(roll - self.roll0, 1) if self.on_old else None,
                 "turn_new_deg": round(roll - self.roll_new0, 1) if self.roll_new0 is not None else None,
-                "gripped": bool(gripped), "spout_in_mm": round(1000 * float(spout[0] - S.spout_axis(S.NEW_Y)[0]), 1)}
+                "gripped": bool(gripped), "spout_in_mm": round(1000 * float(np.dot(spout[:3] - S.spout_axis(S.NEW_C), S.AX)), 1)}
 
 
 def make_dynamics(env):
@@ -186,17 +188,19 @@ def make_scorer():
 
 
 # -- scripted demo -----------------------------------------------------------------------------------------
-# Left hand: the connector. Grips its collar level from the front (fingers across, roll -90), turns it a
-# quarter turn counter-clockwise (roll -90 -> 0), draws it off, carries it to the new spout, pushes it on
-# square and turns it a quarter turn clockwise (roll 0 -> -90), lets go and backs off.
-# Right hand: holds the new spout's flange from above (fingers closing front-to-back across it) while the
-# connector goes on, then lets go.
+# Right hand: the connector. Grips its collar level from the front (approach along the spout's axis, AX;
+# fingers across, roll -90), turns it a quarter turn counter-clockwise (roll -90 -> 0), draws it off, carries
+# it along the row to the new spout, pushes it on square and turns it a quarter turn clockwise (roll 0 -> -90),
+# lets go and backs off. Left hand: reaches round the new carton's end and holds the new spout's flange from
+# above and to the side (fingers closing front-to-back across its edge) while the connector goes on, then lets go.
 F_SPAN = -0.012                       # jaws opened 24 mm: either side of the 4 mm flange, clear of the carton face
 PUSH = 0.008                          # push past the seat: the stop takes it, the line's pull and grip slip are made up
-LINE_PULL = 0.005                     # the line's weight draws the held connector ~5 mm toward the pump: aim off by that
-SAG = 0.006                           # the connector hangs ~4 mm low in the level grip: aim that much higher
-REST = {"left": (0.14, 0.20, S.TOP + 0.24), "right": (0.14, -0.20, S.TOP + 0.24)}
-X = np.array([1.0, 0.0, 0.0])
+LINE_PULL = np.array([0.005, 0.0, 0.0])   # the line's weight draws the held connector a few mm: aim off by that
+SAG = 0.021                           # the connector hangs ~16 mm low in the jaws by then (the line drags on it): aim higher
+REST = {"left": (0.30, 0.37, S.TOP + 0.30), "right": (0.14, -0.20, S.TOP + 0.24)}
+DONE_R = (0.08, -0.17, S.TOP + 0.26)  # the right hand's place once it has let go, well clear of the connector
+VIA_L = ((0.14, 0.22, S.TOP + 0.27), (0.11, -0.06, S.TOP + 0.25))   # the left hand's way round the new carton's end
+AX = S.AX                             # along the spouts, into the cartons
 
 
 def frame(a, close):
@@ -210,7 +214,7 @@ def frame(a, close):
 
 def level(roll):
     r = math.radians(roll)
-    return frame(X, (0.0, math.sin(r), math.cos(r)))
+    return frame(AX, S.RZ @ np.array([0.0, math.sin(r), math.cos(r)]))
 
 
 def _w(t, p, f, label, rot):
@@ -221,47 +225,55 @@ def demo():
     if SCENE_ONLY:
         return {side: [_w(1.5, REST[side], FINGER_OPEN, "look", DOWN), _w(MAX_STEPS / HZ, REST[side], FINGER_OPEN, "hold", DOWN)]
                 for side in ("left", "right")}
-    old = S.connector_pos(S.OLD_Y) + X * S.COLLAR_X - X * PAD_TIP          # TCP for the collar on the empty spout
-    new = S.connector_pos(S.NEW_Y) + X * S.COLLAR_X - X * PAD_TIP + np.array([0.0, -LINE_PULL, SAG])   # ... on the new spout
+    old = S.connector_pos(S.OLD_C) + AX * S.COLLAR_X - AX * PAD_TIP   # TCP for the collar on the empty spout
+    new = S.connector_pos(S.NEW_C) + AX * S.COLLAR_X - AX * PAD_TIP + LINE_PULL + np.array([0.0, 0.0, SAG])   # ... on the new spout
     up = np.array([0.0, 0.0, 1.0])
-    left = [
-        _w(1.5, REST["left"], FINGER_OPEN, "look", DOWN),
-        _w(2.5, old - X * 0.07, FINGER_OPEN, "in front of the connector", level(-90)),
+    along = np.array([(S.NEW_C[0] - S.OLD_C[0]) / 2, (S.NEW_C[1] - S.OLD_C[1]) / 2, 0.0])
+    right = [
+        _w(1.5, REST["right"], FINGER_OPEN, "look", level(-90)),
+        _w(2.5, old - AX * 0.07, FINGER_OPEN, "in front of the connector", level(-90)),
         _w(1.5, old, FINGER_OPEN, "round its collar", level(-90)),
         _w(0.8, old, FINGER_CLOSED, "grip the collar", level(-90)),
         _w(1.2, old, FINGER_CLOSED, "turn it", level(-45)),
         _w(1.2, old, FINGER_CLOSED, "quarter turn counter-clockwise", level(0)),
-        _w(1.5, old - X * 0.07, FINGER_CLOSED, "draw it off the spout", level(0)),
-        _w(2.0, old - X * 0.09 + up * 0.04 + np.array([0.0, -0.165, 0.0]), FINGER_CLOSED, "carry it over", level(0)),
-        _w(2.0, new - X * 0.05, FINGER_CLOSED, "line it up with the new spout", level(0)),
-        _w(1.0, new - X * 0.05, FINGER_CLOSED, "steady", level(0)),
-        _w(2.0, new + X * PUSH, FINGER_CLOSED, "push it on, through the line's pull", level(0)),
-        _w(1.0, new + X * PUSH, FINGER_CLOSED, "seated", level(0)),
-        _w(1.2, new + X * PUSH, FINGER_CLOSED, "turn it", level(-45)),
-        _w(1.2, new + X * PUSH, FINGER_CLOSED, "quarter turn clockwise: locked", level(-90)),
+        _w(1.5, old - AX * 0.07, FINGER_CLOSED, "draw it off the spout", level(0)),
+        _w(2.0, old - AX * 0.09 + up * 0.04 + along, FINGER_CLOSED, "carry it along the row", level(0)),
+        _w(2.0, new - AX * 0.05, FINGER_CLOSED, "line it up with the new spout", level(0)),
+        _w(1.0, new - AX * 0.05, FINGER_CLOSED, "steady", level(0)),
+        _w(2.0, new + AX * PUSH, FINGER_CLOSED, "push it on, through the line's pull", level(0)),
+        _w(1.0, new + AX * PUSH, FINGER_CLOSED, "seated", level(0)),
+        _w(1.2, new + AX * PUSH, FINGER_CLOSED, "turn it", level(-45)),
+        _w(1.2, new + AX * PUSH, FINGER_CLOSED, "quarter turn clockwise: locked", level(-90)),
         _w(0.8, new, FINGER_OPEN, "let go", level(-90)),
-        _w(1.5, new - X * 0.08, FINGER_OPEN, "back off", level(-90)),
-        _w(2.0, REST["left"], FINGER_OPEN, "rest", DOWN),
-        _w(3.0, REST["left"], FINGER_OPEN, "hold", DOWN),
+        _w(1.5, new - AX * 0.08, FINGER_OPEN, "back off", level(-90)),
+        _w(2.0, DONE_R, FINGER_OPEN, "rest", level(0)),
+        _w(3.0, DONE_R, FINGER_OPEN, "hold", level(0)),
     ]
-    # right hand: from the right side, 15 degrees forward of square, its fingers closing front-to-back across
-    # the flange's near edge (pad tips 12 mm in over the 23 mm-radius flange)
-    a_r = np.array([0.26, 0.97, 0.0])
-    a_r = a_r / np.linalg.norm(a_r)
-    side = frame(a_r, (1.0, 0.0, 0.0))
-    tip = S.spout_axis(S.NEW_Y) + X * 0.002 + np.array([0.0, -(S.FLANGE_R - 0.012), 0.0])
-    grip_r = tip - a_r * PAD_TIP
+    # left hand: from the side away from the empty carton and from above (30 degrees down, 15 toward the carton),
+    # its fingers closing front-to-back (along the spout's axis) across the flange's near upper edge (pad tips
+    # 12 mm in over the 23 mm-radius flange)
+    a_l = 0.8 * S.ROW + 0.26 * AX - 0.5 * up
+    a_l = a_l / np.linalg.norm(a_l)
+    side = frame(a_l, -AX)
+    edge = a_l - np.dot(a_l, AX) * AX
+    edge = edge / np.linalg.norm(edge)
+    tip = S.spout_axis(S.NEW_C) + AX * 0.002 - edge * (S.FLANGE_R - 0.012)
+    grip_l = tip - a_l * PAD_TIP
     t_hold = 1.5 + 2.5 + 1.5 + 0.8 + 1.2 + 1.2 + 1.5 + 2.0 - 5.0
-    right = [
-        _w(1.5, REST["right"], FINGER_OPEN, "look", DOWN),
-        _w(t_hold, REST["right"], FINGER_OPEN, "wait", DOWN),
-        _w(2.5, grip_r - a_r * 0.035 + up * 0.02, F_SPAN, "beside the new spout's flange", side),
-        _w(1.5, grip_r, F_SPAN, "fingers either side of the flange", side),
-        _w(0.8, grip_r, FINGER_CLOSED, "hold the flange", side),
-        _w(9.0, grip_r, FINGER_CLOSED, "hold it while the connector goes on", side),
-        _w(0.8, grip_r, F_SPAN, "let go", side),
-        _w(1.2, grip_r - a_r * 0.05 + up * 0.03, FINGER_OPEN, "draw the hand away", side),
-        _w(2.0, REST["right"], FINGER_OPEN, "rest", DOWN),
-        _w(3.0, REST["right"], FINGER_OPEN, "hold", DOWN),
+    left = [
+        _w(1.5, REST["left"], FINGER_OPEN, "look", side),
+        _w(t_hold - 1.5, REST["left"], FINGER_OPEN, "wait", side),
+        _w(0.8, VIA_L[0], FINGER_OPEN, "round the new carton's end", side),
+        _w(0.7, VIA_L[1], FINGER_OPEN, "in front of it", side),
+        _w(2.5, grip_l - a_l * 0.035 + up * 0.02, F_SPAN, "beside the new spout's flange", side),
+        _w(1.5, grip_l, F_SPAN, "fingers either side of the flange", side),
+        _w(0.8, grip_l, FINGER_CLOSED, "hold the flange", side),
+        _w(9.0, grip_l, FINGER_CLOSED, "hold it while the connector goes on", side),
+        _w(0.8, grip_l, F_SPAN, "let go", side),
+        _w(1.2, grip_l - a_l * 0.05 + up * 0.03, FINGER_OPEN, "draw the hand away", side),
+        _w(0.8, VIA_L[1], FINGER_OPEN, "clear of the spout", side),
+        _w(0.7, VIA_L[0], FINGER_OPEN, "round the carton's end", side),
+        _w(1.5, REST["left"], FINGER_OPEN, "rest", side),
+        _w(3.0, REST["left"], FINGER_OPEN, "hold", side),
     ]
     return {"left": left, "right": right}

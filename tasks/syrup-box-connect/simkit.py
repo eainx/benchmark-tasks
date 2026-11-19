@@ -181,6 +181,9 @@ class Spring:
     anchor: tuple[float, float, float] | None = None
     local: tuple[float, float, float] | None = None
     enabled: bool = True
+    # Joint frame orientation (w, x, y, z) in both bodies' spawn frames: ``axis`` is taken in this frame,
+    # so the body can slide along any direction, not only a world axis.
+    frame_rot: tuple[float, float, float, float] | None = None
 
     def __post_init__(self) -> None:
         if self.axis not in ("X", "Y", "Z"):
@@ -772,6 +775,10 @@ def _add_spring(prim, spec: Part) -> None:
     else:
         joint.CreateLocalPos0Attr(Gf.Vec3f(*(float(v) for v in spec.pos)))
     joint.CreateLocalPos1Attr(Gf.Vec3f(*(float(v) for v in (spring.local or (0.0, 0.0, 0.0)))))
+    if spring.frame_rot is not None:
+        q = Gf.Quatf(*(float(v) for v in spring.frame_rot))
+        joint.CreateLocalRot0Attr(q)
+        joint.CreateLocalRot1Attr(q)
     if not spring.enabled:
         joint.CreateJointEnabledAttr(False)
     joint.CreateLowerLimitAttr(float(spring.lower))

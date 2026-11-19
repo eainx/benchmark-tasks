@@ -53,12 +53,11 @@ def _rot(q):
 
 
 def roll_deg(pose):
-    """The connector's turn about its own axis, degrees (atan2 of its local z axis' y and z components)."""
-    q = np.asarray(pose, float)[3:7]
-    x, y, z, w = q
-    zy = 2 * (y * z - x * w)
-    zz = 1 - 2 * (x * x + y * y)
-    return -math.degrees(math.atan2(zy, zz))
+    """The connector's turn about the spouts' axis (S.AX, into the carton), degrees, from its spawn attitude: the
+    angle its local z axis has turned about AX; negative is counter-clockwise seen from the front."""
+    zz = S.quat_rot(np.asarray(pose, float)[3:7])[:, 2]
+    u = np.array([0.0, 0.0, 1.0])
+    return math.degrees(math.atan2(float(np.dot(np.cross(u, zz), S.AX)), float(np.dot(u, zz))))
 
 
 class TrialScorer:
@@ -79,16 +78,16 @@ class TrialScorer:
         m = mechanics
         conn = np.asarray(root_poses["connector"], float)
         spout = np.asarray(root_poses["new_spout"], float)
-        spout_in = 1000 * float(spout[0] - S.spout_axis(S.NEW_Y)[0])
+        spout_in = 1000 * float(np.dot(spout[:3] - S.spout_axis(S.NEW_C), S.AX))
         if spout_in > PUSHED_IN_MM:
             self.pushed_in = True
         if conn[2] < DROP_Z:
             self.dropped = True
-        barb = conn[:3] + _rot(conn[3:7]) @ np.asarray(S.BARB)
+        barb = conn[:3] + _rot(conn[3:7]) @ np.asarray(S.BARB_W)
         span = float(np.linalg.norm(barb - S.pump_inlet()))
         if span > TAUT * LINE_LEN:
             self.taut = True
-        off = (not m["on_old"]) and 1000 * float(np.linalg.norm(conn[:3] - S.connector_pos(S.OLD_Y))) >= OFF_MM
+        off = (not m["on_old"]) and 1000 * float(np.linalg.norm(conn[:3] - S.connector_pos(S.OLD_C))) >= OFF_MM
         self.was_off = self.was_off or off or bool(m["engaged"])          # latched: wherever it is set down later
         score = 0.0
         if self.was_off:
