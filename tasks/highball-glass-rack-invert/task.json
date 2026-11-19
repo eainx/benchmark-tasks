@@ -1,0 +1,23 @@
+{
+  "title": "Rack two upright hi-ball glasses mouth-down in a dish-machine glass rack, turning each over by a hand-to-hand regrasp",
+  "category": "Impact on jobs",
+  "keywords": [
+    "dish machine",
+    "glass rack",
+    "bar back",
+    "dishwasher",
+    "regrasp",
+    "hand-over",
+    "reorientation",
+    "bimanual"
+  ],
+  "instruction": "Rack both glasses mouth-down for the dish machine.",
+  "context": "Dishwashers (about 390,000 in the US, BLS OEWS 2023), dining room and cafeteria attendants and bartender helpers (about 440,000) and bartenders (about 650,000) rack glassware for the dish machine many times a shift: every glass goes mouth-down in its own compartment so the wash and rinse reach inside and it drains. Glasses come back mouth-up. A person turns each one over in one hand; a two-finger gripper cannot. It can hold a standing glass only from the side near the rim (lower down the wrist meets the table), and it can lower a glass between 101 mm compartment walls only by holding its foot from above. Turning the glass over between those grips takes both hands: one picks it and rolls it over, the other takes it by the foot.",
+  "setup": "Bench top is z = 0.7475 m; everything is real size. A brushed stainless dish-table top (640 x 1100 x 3 mm) lies centred at x 0.33, y 0. Two identical empty 10 oz heavy-base hi-ball tumblers (clear glass, 116 mm tall, 66 mm across the rim, 60 mm across the foot, 0.30 kg) stand mouth-up at (x 0.215, y 0.215) and (x 0.355, y 0.225). An empty grey polypropylene 25-compartment dish-machine glass rack (500 x 500 x 101 mm, 5 x 5 compartments at 97.6 mm pitch, about 95 mm inside, open floor grid 9 mm, 2.3 kg) stands with its centre at (x 0.36, y -0.25), loose on the table. Nothing else is on the table. Arms start at their rest poses.",
+  "scoring": "From the glass and rack poses. Turned over: a glass's mouth has pointed within 30 degrees of straight down (held or not). Racked: mouth-down within 10 degrees, its mouth rim on the rack's floor grid (within 5 mm), its mouth centre inside one compartment (one glass each), and every finger pad at least 20 mm off it. Milestones latch: 0.15 per glass turned over, plus 0.30 per glass racked (the most at once), up to 0.9. 1.0: both glasses racked and at rest, held 1 s. A glass knocked over (not held, lying between 35 and 145 degrees at table or rack height) or off the bench at any time scores 0. In a real trial each condition is read from video: mouth-down, in a compartment, rim on the grid, hands off.",
+  "run_limit": "1,200 control steps (60 seconds at 20 Hz)",
+  "reset_notes": "Fixed poses, no randomisation: both glasses upright (mouth up) at their marks on the dish table, the empty rack at its mark; the arms at their rest poses.",
+  "fidelity": "PhysX 240 Hz, real sizes. Each glass is one rigid body: 24 box staves on its tapered outside plus a solid base, translucent glass surface (opacity 0.45, faint blue-green tint). The rack is one free 2.3 kg body of floor-grid bars, 4+4 dividers and four walls. Glasses, rack and table meet only by contact; nothing is attached, snapped or triggered. Glass cannot break in simulation.",
+  "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 893 steps.",
+  "media": "M-RM3STX"
+}
