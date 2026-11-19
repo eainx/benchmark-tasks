@@ -1,0 +1,23 @@
+{
+  "title": "Chip the slag off a stick-weld bead with a welder's chipping hammer, piece by piece, then lay the hammer down",
+  "category": "Impact on jobs",
+  "keywords": [
+    "welding",
+    "slag",
+    "chipping hammer",
+    "stick welding",
+    "SMAW",
+    "weld cleaning",
+    "tool use",
+    "fabrication"
+  ],
+  "instruction": "Clean the slag off the weld.",
+  "context": "Welders, cutters and welder fitters (about 420,000 in the US, BLS OES 51-4121) plus structural metal fabricators and fitters (about 75,000) and ironworkers (about 65,000) chip slag off every stick (SMAW) and flux-cored weld, after each pass, before the next pass or inspection; O*NET lists 'Chip or grind off excess weld, slag, or spatter, using hand scraper or power chipper' among welders' core tasks. The crust is hot, sharp and glassy, so it is never knocked off by hand: the chisel end of a chipping hammer is driven into the toe of the slag, where it meets the plate, and each cracked piece pops off. A blow on top of the crust, or a miss onto the plate, does nothing.",
+  "setup": "Bench top is z = 0.7475 m. A 260 x 260 x 12 mm steel welding fixture plate with a 16 mm hole grid is bolted to the bench, centred at x 0.34, y -0.08. On it, a 3/8 x 3 x 8 in (9.5 x 76 x 200 mm) mill-scale A36 coupon is tacked at both ends. A 150 mm stick-weld stringer bead (10 mm wide, 3 mm high, heat tint either side) runs along y at x 0.34, from y -0.16 to -0.01. It is covered by its dark glassy slag crust, cracked across into six pieces about 25 mm long. A 0.40 kg welder's chipping hammer (chisel end, point end, coil-spring handle, 280 mm long) lies on its side on the bench at x 0.19-0.35, y -0.30, with its handle toward the arms.",
+  "scoring": "0.15 for each slag piece off the bead: knocked loose (moved 2 mm or more) and its centre now 9 mm or more to the side of the bead line or past its ends, judged on the current state. 1.0 when all six are off and the hammer is lying still on the bench or fixture with no finger pad within 30 mm of its handle. A piece that first moves with a finger pad within 15 mm of it was knocked off by hand and earns nothing; a hammer dropped below the bench top gets no put-down credit. Real trial: six soapstone-marked zones; a zone counts when its bead metal is bare (photo); the hands and hammer are judged from video.",
+  "run_limit": "1200 control steps (60 seconds at 20 Hz)",
+  "reset_notes": "Fixed pose, no randomisation. In a real trial a fresh slagged coupon is used each time: one 150 mm flat stringer of 1/8 in E7018 at about 120 A, cooled, the crust left on, tacked to the fixture plate. The hammer is laid back at its marked spot.",
+  "fidelity": "PhysX 240 Hz. The coupon, bead and fixture plate are one fixed body. Each slag piece is a free 4 g rigid body held where it lies by a PhysX fixed joint to the world that breaks at 5 N or 0.05 N m, so only a load that size (the chisel's blow) frees it. The bead's collider is its lowest 1 mm, so a loose piece can slide off sideways. The crust's six cracks are fixed in advance; the hammer's spring handle is a rigid cylinder.",
+  "scores": "Dream-1 run: 0 after 33 steps (1.65 simulated seconds); termination: DreamServerError:pool_warming. Scripted/teleoperated demo: 1 after 764 steps.",
+  "media": "M-JFZLAG"
+}
