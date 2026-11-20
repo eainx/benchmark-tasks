@@ -1,0 +1,22 @@
+{
+  "title": "Lift a floor sink's sediment basket out by its folded bail and tip its scraps into a bus tub with two hands",
+  "category": "Societal relatability",
+  "keywords": [
+    "floor sink",
+    "drain basket",
+    "bail handle",
+    "dumping",
+    "bimanual",
+    "drain clearing",
+    "commercial kitchen"
+  ],
+  "instruction": "Empty the floor sink's basket into the bus tub.",
+  "context": "Clearing a drain's catch basket is one of the most familiar cleaning jobs there is: almost everyone has pulled the strainer or basket out of a clogged drain and shaken the gunk into a bin, whether at a kitchen sink, a shower, a yard drain or a commercial kitchen's floor sink at close-down. This is the floor-sink form. It differs from the board's sink-strainer task (#2130, a strainer lifted out by its knob) in how the basket has to be handled: it sits 115 mm down on a seat ledge with about 7 mm of clearance to the sink's walls, so there is no rim to grip, and it only comes out by its wire bail, folded flat to one side. The bail has to be swung up, the basket lifted level so the scraps stay in, carried over the tub, and emptied with the second hand lifting the basket's edge while the first holds the bail. (The hinged grate that covers a real floor sink is left out of this version: see the README.)",
+  "setup": "Bench top z = 0.7475 m; x away from the arm bases, y left, origin midway between the arm bases on the bench. Everything real size. A floor mock-up: a 165 mm tiled plywood platform (x 0.075-0.560, y -0.115-0.44 m) faced with 150 mm red quarry tile, a white-tiled wall stub on its left (y 0.44). Set flush in it, centred x 0.300, y 0.050: a 12 x 12 x 6 in floor sink (305 mm square stainless top, 280 mm recess, 254 mm square white enamel interior 152 mm deep) with a ring of 14 mm stainless seat lugs 115 mm down. On them sits a shallow perforated aluminium sediment basket (240 x 240 x 75 mm, 0.38 kg) whose 5 mm wire bail (ears on its near and far walls, 90 mm rise, a 13 mm black plastic grip sleeve on the top bar, 0.04 kg) lies folded flat toward the right. In it: a lemon wedge, a lime wedge (plastic food replicas, 75 mm, 18 g) and a red plastic bottle cap (29 mm, 3 g). A grey polypropylene bus tub (508 x 381 x 127 mm, 1.1 kg, e.g. Cambro 1520CBP / Carlisle 4401) stands on the bench right of the platform, centred x 0.300, y -0.312. Real build: any 12 x 12 x 6 in floor sink (e.g. Zurn Z1900 family) set in a tiled plywood box; the seat ring is four 14 mm stainless flats screwed inside; the basket is a 240 mm square perforated sediment basket with a wire bail.",
+  "scoring": "From measured poses. 0.25: the basket lifted clear of the sink (its base above the floor). +0.20 for each of the 3 scraps lying in the bus tub (inside its inner outline less 30 mm, below its rim), counted only once the basket has been out. All three in the tub gives 0.85; 1.0 needs them at rest for 1 s. Nothing is scored before the basket leaves the sink. Any scrap left outside both the tub and the basket (in the sink, on the floor or bench), or the tub pushed over 50 mm / tipped over 15 deg, caps the score at 0.5. Real trial: the basket clearing the floor is seen on video; count the scraps in the tub.",
+  "run_limit": "1,200 control steps (60 seconds at 20 Hz)",
+  "reset_notes": "Fixed start, no randomisation: basket on its seat lugs with its bail folded flat to the right and the three scraps in it, tub empty. Reset takes about a minute.",
+  "fidelity": "PhysX 240 Hz. Rigid bodies only. The bail turns on a revolute pivot on the basket. Its stop at 88 deg each side is a joint limit that stands in for the rim contact, and only the bail's top bar has a collider; its legs run clear of the basket and sink walls. Nothing is scripted: no forces, no attachments, no proximity rules. Scraps are rigid replicas with friction 0.45/0.35 (wet plastic on aluminium); the basket's perforations are drawn, not cut.",
+  "scores": "Dream-1 run: 0 after 129 steps (6.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 520 steps.",
+  "media": "M-T44LNT"
+}
