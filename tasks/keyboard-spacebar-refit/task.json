@@ -1,0 +1,21 @@
+{
+  "title": "Put a mechanical keyboard's spacebar back on: all three cross sockets over the switch and both stabilizer stems at once, then press it home level",
+  "category": "Societal relevance",
+  "keywords": [
+    "computer",
+    "keyboard cleaning",
+    "multi-point alignment",
+    "press fit",
+    "bimanual",
+    "household"
+  ],
+  "instruction": "Put the spacebar back on the keyboard so it sits level on its stems and springs back when pressed, then move your hands away.",
+  "context": "Keycaps are pulled off to clean under them, and a spill on a keyboard means doing it; the spacebar is the one people struggle to put back. It has three cross sockets: the switch's in the middle and two stabilizer stems 50 mm either side, linked under the plate by one wire. All three have to come down over their crosses together with the cap square and level, and then the cap is pressed home with both ends pushed evenly; pressed at one end, the far socket misses or the cap cocks. Once on, the key must still spring back up.",
+  "setup": "Bench top is z = 0.7475 m; x points away from the arm bases (0.6 m apart at the bench's near edge), y to their left. All poses fixed. Keyboard (fixed): a full-size 104-key ANSI mechanical keyboard, case 143 x 453 x 18.5 mm, front edge at x 0.278, spanning y 0.083 to -0.370, with every keycap in place except the spacebar. The spacebar's slot is centred at x 0.30, y -0.06: a linear MX-style switch in the middle (4 mm travel, 0.45 N at rest to 0.9 N bottomed) and two wire-linked stabilizer stems 50 mm either side, all with + cross tips. Spacebar: a 6.25u keycap, 118.5 x 18.2 mm and 16.7 mm tall, 8 g, lying keycap-up on the desk in front of the keyboard at x 0.20, y -0.06, its long side along y, sockets down. Dimensions, masses and friction are in parameters.py and README.md.",
+  "scoring": "From the measured spacebar and stem poses and the hands' measured positions. A socket is on its cross when the cross is 2.5 to 4.1 mm into the 3.5 mm socket (not through its floor) and centred within 1.2 mm. 0.25: at least one socket on its cross. 0.5: all three crosses started into their sockets (1.5 mm in, within 1.5 mm). 0.75: all three on, the cap level within 1.5 degrees. 1.0: also the key back up at its rest height (within 0.8 mm) and both hands at least 50 mm from the cap, held for 1 s.",
+  "run_limit": "1,000 control steps (50 seconds at 20 Hz)",
+  "reset_notes": "Pull the spacebar straight up off its stems with a keycap puller and lay it keycap-up at its outline on the desk in front of the keyboard.",
+  "fidelity": "PhysX 240 Hz, real gripper contact. The keyboard is fixed; the switch slider and the two stabilizer sliders (one body, as the wire links them) slide on sprung prismatic joints and carry MX + crosses (1.17 mm arms) built from boxes. The spacebar is a free rigid body: an 8 mm solid top (thicker than a real 1.5 mm shell, so the gripper can hold it) with four skirt walls and three boss sockets whose cross slots leave 0.08 mm play each side, with no interference fit: it stays on by gravity and friction.",
+  "scores": "Dream-1 run: 0 after 993 steps (49.65 simulated seconds); termination: task_budget_limit. Scripted/teleoperated demo: 1 after 502 steps.",
+  "media": "M-N3XNGJ"
+}
