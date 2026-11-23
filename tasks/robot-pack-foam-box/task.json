@@ -1,0 +1,21 @@
+{
+  "title": "Pack a desktop robot back in its retail box: into its foam pocket, top pad on, deep lid slid down over the base",
+  "category": "Impact on jobs",
+  "keywords": [
+    "packing",
+    "returns",
+    "foam insert",
+    "telescoping lid",
+    "bimanual",
+    "e-commerce"
+  ],
+  "instruction": "Pack the robot back into its box: robot in its foam pocket, the top foam pad on it, and the lid on, then move your hands away.",
+  "context": "Returned, demo and refurbished electronics are repacked by hand in their original boxes at returns centres and shops. A small robot ships in a rigid two-piece box: it goes down into a die-cut foam pocket, a foam pad goes on top so it cannot move, and the deep lid slides down over the base until it rests on the pad. The pocket has 4 mm of play and the lid 4 mm round the base, so each part must go down square and centred, and a lid lowered skew catches on the base or the pad.",
+  "setup": "Bench top is z = 0.7475 m; x points away from the arm bases (0.6 m apart at the bench's near edge), y to their left. All poses fixed. Box base: 115 x 56 mm, 38 mm high, rigid board, 120 g with its black foam insert, centred at x 0.30, y -0.05, long side along x; the insert's pocket is 78 x 44 x 20 mm. Robot: a palm-sized desktop robot, 70 x 36 x 45 mm, 150 g, at x 0.20, y -0.21, facing +x. Top pad: 100 x 46 x 25 mm foam, 25 g, at x 0.18, y -0.125. Lid: 123 x 64 mm, 50.5 mm deep, 100 g, skirt down at x 0.36, y -0.205. Dimensions, masses and friction are in parameters.py and README.md.",
+  "scoring": "Watched on video and checked on the box. The robot is in when it is on the pocket floor, within 6 mm of the pocket's centre, square within 6 degrees and upright. The pad is on when it lies flat on the robot, within 10 mm of centre and square within 6 degrees. The lid is on when it rests on the pad, within 4 mm of centre, square within 4 degrees and level within 3 degrees. 0.25: robot in. 0.5: also the pad on. 0.75: also the lid on, the base moved less than 30 mm and upright. 1.0: also both hands clear of the box, held for 1 s. 0 if the box is knocked over.",
+  "run_limit": "1,400 control steps (70 seconds at 20 Hz)",
+  "reset_notes": "Take the lid, the pad and the robot out, and set the base, the robot, the pad and the lid (skirt down) on their outlines on the desk.",
+  "fidelity": "PhysX 240 Hz, real gripper contact. The base with its foam insert is one free rigid body; the robot, the top pad and the lid are free rigid bodies. Foam and board are rigid here: the foam does not squeeze and the board does not flex, so the pocket's 4 mm play and the lid's 2 mm play each side are fixed gaps.",
+  "scores": "Dream-1 run: 0 after 465 steps (23.25 simulated seconds); termination: DreamBadRequest:request_refused. Scripted/teleoperated demo: 1 after 817 steps.",
+  "media": "M-3JBRFE"
+}
