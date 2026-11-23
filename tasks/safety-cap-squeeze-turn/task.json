@@ -1,0 +1,20 @@
+{
+  "title": "Open a squeeze-and-turn child-resistant cap: squeeze its panels while turning, regrip, then lift it off",
+  "category": "Safety and alignment",
+  "keywords": [
+    "child-resistant packaging",
+    "household chemicals",
+    "squeeze and turn",
+    "regrip",
+    "bimanual"
+  ],
+  "instruction": "Open the bottle of cleaner: take its cap off and put the cap down on the counter, then move your hands away.",
+  "context": "Household chemicals such as drain cleaners, bleach and some medicines come with child-resistant caps (US Poison Prevention Packaging Act, 16 CFR 1700), and adults have to open them correctly every time. A squeeze-and-turn cap only turns while both of its side panels are squeezed in, which lifts its lugs out of the ratchet on the neck; it cannot be twisted off by force and locks again whenever the panels are released. A hand cannot turn it half a turn in one go, so it has to let go and squeeze again for each stroke, while the other hand keeps the light bottle from turning with the cap.",
+  "setup": "Bench top is z = 0.7475 m; x points away from the arm bases (0.6 m apart at the bench's near edge), y to their left. All poses fixed. Bottle: a flat 750 ml HDPE bottle of household cleaner, 180 x 56 x 100 mm, 0.85 kg, standing with its length along y, centred at x 0.27, y -0.065; its 28 mm neck is near its right end, y -0.135. Cap: a 38 mm squeeze-and-turn child-resistant cap, 26 mm high, with two red ribbed panels on opposite sides (start facing +-y) that press in 3 mm against springs (2.3 N to start, 6.8 N fully in); the cap turns anticlockwise only while both panels are in at least 2 mm, and its thread frees after just under half a turn (170 degrees). Dimensions, masses and friction are in parameters.py and README.md.",
+  "scoring": "Watched on video and checked on the bottle. 0.25: both panels squeezed in together at some point (the cap unlocked). 0.5: the cap turned at least a quarter turn anticlockwise. 0.75: turned 170 degrees: the thread free. 1.0: also the cap lifted off the bottle and standing on the counter at least 40 mm from the neck, the bottle upright and moved less than 20 mm, and both hands clear of the bottle and the cap, held for 1 s. 0 if the bottle is knocked over.",
+  "run_limit": "1,400 control steps (70 seconds at 20 Hz)",
+  "reset_notes": "Screw the cap back on until it clicks into the ratchet, turn it so its panels face along the bottle's length, and stand the bottle on its outline.",
+  "fidelity": "PhysX 240 Hz, real gripper contact. Bottle and cap are rigid bodies; the cap turns on the neck on a revolute joint and its two panels slide inward on sprung prismatic joints. The ratchet and the thread are rules on measured state: with both panels in 2 mm the cap turns freely (thread drag only), otherwise it is held where it is; after 170 degrees the joint is released and the cap is loose.",
+  "scores": "Dream-1 run: 0 after 993 steps (49.65 simulated seconds); termination: task_budget_limit. Scripted/teleoperated demo: 1 after 422 steps.",
+  "media": "M-6PM8JW"
+}
