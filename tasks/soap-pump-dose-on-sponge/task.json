@@ -1,0 +1,20 @@
+{
+  "title": "Pump one dose of dish soap onto the sponge: swing the pump's spout round over it, then one full stroke",
+  "category": "Societal relevance",
+  "keywords": [
+    "kitchen",
+    "dish soap",
+    "pump dispenser",
+    "aim and press",
+    "household"
+  ],
+  "instruction": "Put one pump of dish soap on the sponge, then move your hands away.",
+  "context": "Pumping dish soap or hand soap onto a sponge or a hand is one of the most common things people do at a sink. A pump head swivels freely, so its spout is often left facing the wrong way: it has to be swung round to overhang the sponge before the head is pressed, or the soap lands on the counter. The head then has to go down through its whole stroke against the spring, about 6 N at the bottom, for a full dose, and be let back up, without knocking over or sliding the light bottle.",
+  "setup": "Bench top is z = 0.7475 m; x points away from the arm bases (0.6 m apart at the bench's near edge), y to their left. All poses fixed. Pump bottle: a 250 ml Boston-round dish-soap bottle (64 mm diameter, 115 mm body, 0.30 kg nearly full) standing at x 0.25, y -0.08, with a standard 28 mm lotion pump: a 34 mm head with a spout reaching 46 mm from its axis, 16 mm stroke, spring about 2.6 N at rest and 6 N at the bottom. The head swivels freely; its spout points straight back (+x). Sponge: a 95 x 65 x 28 mm kitchen sponge with a green scouring side up, lying against the bottle's right side, its long side along x. Dimensions, masses and friction are in parameters.py and README.md.",
+  "scoring": "Watched from the side and checked on the sponge. A stroke counts once the head goes at least 13 mm down; the dose lands under the spout's tip at that moment. 0.25: the spout's tip over the sponge (at least 5 mm in from its edges). 0.5: a full stroke with the tip over the sponge. 0.75: exactly one stroke, on the sponge, the head back up (within 4 mm of the top), the bottle moved less than 10 mm and tilted less than 5 degrees. 1.0: also both hands at least 90 mm from the bottle or above it, held for 1 s. 0 if any stroke is made with the tip not over the sponge (soap on the counter) or the bottle is knocked over.",
+  "run_limit": "1,000 control steps (50 seconds at 20 Hz)",
+  "reset_notes": "Wipe the sponge, stand the bottle on its mark, turn the spout to point straight back, and lay the sponge against the bottle's right side on its outline.",
+  "fidelity": "PhysX 240 Hz, real gripper contact. The bottle and the sponge are free rigid bodies; the pump stem slides in the bottle on a sprung prismatic joint (220 N/m, preloaded to 2.6 N, 16 mm stroke) and the head swivels freely on the stem (revolute joint). The stem tube under the head and the screw closure on the neck are drawn but do not collide (the head's and neck's colliders carry the contact). The soap itself is not simulated: the dose is where the measured spout tip is when the head reaches 13 mm down. Bottle on bench mu 0.5.",
+  "scores": "Dream-1 run: 0 after 993 steps (49.65 simulated seconds); termination: task_budget_limit. Scripted/teleoperated demo: 1 after 373 steps.",
+  "media": "M-QLMPT7"
+}
