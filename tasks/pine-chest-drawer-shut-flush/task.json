@@ -1,0 +1,20 @@
+{
+  "title": "Shut a wide wood-runner chest drawer that has gone in crooked: square it up and push it home flush",
+  "category": "Societal relevance",
+  "keywords": [
+    "household",
+    "drawer",
+    "racking",
+    "binding",
+    "bimanual"
+  ],
+  "instruction": "Shut the drawer of the chest all the way, so its front is flush with the chest, then let go and move your hands away.",
+  "context": "Almost everyone has had a wide wooden drawer stick: pushed by one knob, it turns in its runners until a back corner and the opposite front edge bind on the sides, and the harder it is pushed the tighter it jams. The fix is the same in every bedroom: straighten it, then push it home evenly. Here the drawer is 581 mm wide but only 280 mm deep, steered only by the chest's side panels with 1.5 mm of play, so pushing it off-centre makes it bind instead of closing.",
+  "setup": "Bench top is z = 0.7475 m; x points away from the arm bases (0.6 m apart at the bench's near edge), y to their left. All poses fixed. Chest: a low one-drawer chest of 18 mm solid pine, 620 wide x 320 deep x 200 mm high, fixed to the bench, its front face at x 0.42 facing the arms, centred on y 0. The drawer (581 x 280 x 135 mm sides, inset 20 mm front, 1.6 kg with 0.5 kg of folded towels inside) rides on two 20 x 10 mm beech runners along the side panels, 1.5 mm clear of each panel; stop blocks at the back stop it with its front flush. Two 30 mm wooden knobs stand 35 mm proud, 400 mm apart, 106 mm above the bench. The drawer starts 130 mm out at its middle, cocked 0.97 degrees so its left end is 135 mm out and its right end 125 mm out. Dimensions, masses and friction are in parameters.py and README.md.",
+  "scoring": "Measured with a steel rule at both ends of the drawer front against the chest's face. 0.25: the further-out end at most 65 mm out. 0.5: at most 13 mm out. 0.75: both ends within 5 mm of flush. 1.0: both ends within 2 mm of flush, the drawer within 0.3 degrees of square to the chest (ends within 3 mm of each other), and both hands at least 30 mm clear in front of the knobs (or above the chest), held for 1 s. 0 if the drawer is tipped more than 6 degrees or pulled more than 190 mm out (off its runners).",
+  "run_limit": "1,200 control steps (60 seconds at 20 Hz)",
+  "reset_notes": "Pull the drawer out by its left knob until its left end is 135 mm out, then push its right end in to 125 mm out so it rests cocked against the side panels; check both ends with the rule.",
+  "fidelity": "PhysX 240 Hz, real gripper contact. Chest fixed; the drawer is one rigid body (sides, back, front, knobs, bottom; towels as fixed mass) free in x, y and yaw, held only by contact: it slides on the runners (waxed wood, mu 0.30/0.25) and is steered by the side panels (pine on pine, mu 0.45/0.35) with 1.5 mm play each side. Binding comes from those contacts and friction alone, with no joint, rule or scripted jam. Wood is rigid (no swelling or give).",
+  "scores": "Dream-1 run: 0.25 after 993 steps (49.65 simulated seconds); termination: task_budget_limit. Scripted/teleoperated demo: 1 after 300 steps.",
+  "media": "M-89F968"
+}
