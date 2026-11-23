@@ -26,6 +26,7 @@ So one hand holds the sleeve down while the other pushes the tray in:
   - How far the tray's end stands out of, or in from, the sleeve's end.
   - How far the sleeve has moved, and any tilt.
   - Hand clearance.
+  - Every tier needs the tray seated in the sleeve: centred across it within 1.5 mm, on its floor within 2 mm, square within 3 degrees, and its far end not out of the sleeve's other end. A tray pushed through, or pushed in past flush by more than 1 mm, earns nothing.
   - The tiers are in task.json.
 
 ## Run
@@ -39,8 +40,13 @@ python3 run.py --policy scripted --episodes 1 --seed 0     # inside the yam-insp
   - The left fingertips pin the sleeve's top near its left end.
   - The right fingertips push the tray's end in, leading with the tips, part way.
   - The demo, which may read ground truth, pauses to check where the tray's end is and corrects the rest of the push.
-  - The tray ends 0.34 mm inside flush; the sleeve moved 0.0 mm.
+  - The tray's end ends 0.36 mm out of the sleeve's end, 0.08 mm off centre and seated; the sleeve moved 0.0 mm.
 - **Earlier attempts:**
   - With the jaws across the push, the gripper body met the sleeve's end 30 mm short.
   - A full correction overshot by 2 mm, so the tray went in past flush.
-- **Model run (Dream-1):** 0 after 369 steps. The Dream session expired; the tray was not moved.
+- **Model run (Dream-1, revised source):** 0 after 369 steps. The Dream session expired; the tray was not moved.
+
+## Revised after review (TK-TLDTMW)
+- The end offset no longer subtracts the 1 mm by which the tray is shorter than the sleeve: it is now the plain distance between the two ends.
+- A seating check was added (lateral, height, squareness, far end), and the offset has a lower limit, so a tray pushed out of the far end or displaced from the sleeve gets no credit.
+- The demo was re-recorded with the corrected scorer.

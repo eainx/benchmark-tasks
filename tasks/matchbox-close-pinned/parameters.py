@@ -90,4 +90,18 @@ def tray_out(sleeve, tray):
     axis = r @ np.array([0.0, 1.0, 0.0])
     end_s = s[:3] - axis * SL[1] / 2
     end_t = t[:3] - (quat_matrix(t[3:7]) @ np.array([0.0, 1.0, 0.0])) * TL / 2
-    return float(np.dot(end_s - end_t, axis)) - (SL[1] - TL) / 2
+    return float(np.dot(end_s - end_t, axis))
+
+
+def tray_seat(sleeve, tray):
+    """Where the tray sits in the sleeve, in the sleeve's frame: its lateral offset across the sleeve (m),
+    its height offset (m), its yaw relative to the sleeve (deg), and how far its left (+y) end stands out of
+    the sleeve's left end (m, -ve: inside)."""
+    s, t = np.asarray(sleeve, float), np.asarray(tray, float)
+    rs, rt = quat_matrix(s[3:7]), quat_matrix(t[3:7])
+    local = rs.T @ (t[:3] - s[:3])
+    z0 = T + 0.0005                                  # the tray's floor riding on the sleeve's floor
+    ax_t = rs.T @ (rt @ np.array([0.0, 1.0, 0.0]))
+    yaw = math.degrees(math.atan2(-ax_t[0], ax_t[1]))
+    left_out = float(local[1] + TL / 2 - SL[1] / 2)
+    return float(local[0]), float(local[2] - z0), yaw, left_out
