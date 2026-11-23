@@ -1,0 +1,20 @@
+{
+  "title": "Set a router-table fence 25 mm from the bit and parallel, then lock both of its clamping levers",
+  "category": "Impact on jobs",
+  "keywords": [
+    "woodworking",
+    "router table",
+    "fence setup",
+    "two-point alignment",
+    "clamping lever"
+  ],
+  "instruction": "Set the router table fence so its face is 25 mm from the centre of the bit and parallel, then lock both clamping levers and move your hands away.",
+  "context": "O*NET lists for Carpenters (47-2031.00) the task 'Shape or cut materials to specified measurements, using hand tools, machines, or power saws', and cabinetmakers and joiners reset a router-table or saw fence at the start of nearly every cut. A fence clamped at both ends is the awkward kind: with its clamps loose, moving one end swings the fence about the other, so the two ends have to be walked in together to the setting and kept parallel, and then each clamp locked without knocking its end off the setting.",
+  "setup": "Bench top is z = 0.7475 m; x points away from the arm bases (0.6 m apart at the bench's near edge), y to their left. All poses fixed. A 1/2 in (12.7 mm) straight bit stands 25 mm above the bench at x 0.330, y 0, through a router insert plate (the router hangs under the bench). Fence: 600 mm long 19 mm MDF face, 75 mm high, on a 110 x 12 mm MDF base behind it, 1.9 kg, face toward the arms and the bit. Each end of the base rides on a T-bolt in an aluminium T-track let into the bench along x at y = +-0.27, with an adjustable clamping lever on top, 75 mm behind the face: a 75 mm arm on a hub, pointing straight back (away from the bit) when loose. Both levers are loose. The fence is racked: its face is 40.0 mm from the bit's centre line at the left lever and 33.0 mm at the right lever (36.5 mm at the bit). Dimensions, masses and friction are in parameters.py and README.md.",
+  "scoring": "Measured with a 25 mm setup block or a steel rule from the bit's centre to the fence face, and at both levers for parallel. 0.25: face within 3 mm of 25 mm at the bit. 0.5: within 1 mm and the face parallel within 1 mm over 500 mm. 0.75: within 0.5 mm and parallel within 0.5 mm. 1.0: also both levers locked (swung a quarter turn clockwise, seen from above, from loose), the setting still within 0.5 mm after locking, and both hands clear of the fence and levers, held for 1 s. 0 if the fence is pushed onto the bit.",
+  "run_limit": "1,600 control steps (80 seconds at 20 Hz)",
+  "reset_notes": "Release both levers (pointing straight back), set the face to 40.0 mm from the bit centre at the left lever and 33.0 mm at the right lever with the rule, and leave the levers untouched.",
+  "fidelity": "PhysX 240 Hz, real gripper contact. Fence one rigid body on two T-bolt slides (prismatic joints along the tracks, 400 N s/m drag) through vertical pivots (the right one in a 6 mm slot), so moving one end swings it about the other. Clamping levers turn on their bolts (revolute); a lever swung 75 degrees clockwise clamps its slide where it is (a stiff drive, a rule standing in for the screw clamp). Setting and parallelism come from contact only.",
+  "scores": "Dream-1 run: 0 after 945 steps (47.25 simulated seconds); termination: task_budget_limit. Scripted/teleoperated demo: 1 after 482 steps.",
+  "media": "M-N9KP5Z"
+}
