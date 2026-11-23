@@ -1,0 +1,20 @@
+{
+  "title": "Finish a Rubik's cube one move from solved: read the colours, turn the top layer the right way and leave it square",
+  "category": "Other",
+  "keywords": [
+    "puzzle",
+    "Rubik's cube",
+    "reading colours",
+    "twist",
+    "household"
+  ],
+  "instruction": "Finish solving the Rubik's cube, then move your hand away.",
+  "context": "The Rubik's cube is the best-selling puzzle toy, solved by hand by millions of people. This one is a single move from solved: the lower two layers are done and the top layer is a quarter turn out, so each side shows a top row in the colour of the face beside it. Only the colours say which layer to turn and which way. The layer must be turned without the cube sliding or tipping, and left square: a layer left part-way round blocks every other face from turning.",
+  "setup": "Bench top is z = 0.7475 m; x points away from the arm bases (0.6 m apart at the bench's near edge), y to their left. All poses fixed. Mat: a 200 x 260 x 3 mm speedcubing mat (rubber, mu 1.0), fixed, centred at x 0.26, y -0.09. Cube: a standard 57 mm 3x3 speedcube, 90 g, standing on the mat at x 0.28, y -0.09, faces square to x and y, yellow on top, white below. Its lower two layers are solved (red +x, orange -x, blue +y, green -y); its top layer is a quarter turn clockwise (seen from above) from solved, so solving it takes a quarter turn anticlockwise (U'). Dimensions, masses and friction are in parameters.py and README.md.",
+  "scoring": "Watched on video and checked on the cube. 0.25: the top layer within 60 degrees of solved. 0.5: within 15 degrees. 0.75: within 3 degrees (square), the cube upright (tilt under 5 degrees) and moved less than 30 mm on the mat. 1.0: also the hand at least 80 mm from the cube or above it, held for 1 s. Three quarter turns the other way also solve it and count. 0 if the cube is knocked over or off the mat.",
+  "run_limit": "800 control steps (40 seconds at 20 Hz)",
+  "reset_notes": "Solve the cube, turn its top layer a quarter turn clockwise seen from above (U), and stand it on its outline on the mat, yellow up, red face toward the back.",
+  "fidelity": "PhysX 240 Hz, real gripper contact. The lower two layers are one free rigid body standing on the fixed mat; the top layer turns on a revolute joint on the core's vertical axis with light damping and joint friction, like a broken-in cube. The middle layer cannot turn and the corner-cutting of a real cube is not modelled. Stickers are drawn but do not collide.",
+  "scores": "Dream-1 run: 0 after 800 steps (40 simulated seconds); termination: step_limit. Scripted/teleoperated demo: 1 after 212 steps.",
+  "media": "M-TX2562"
+}
