@@ -1,0 +1,20 @@
+{
+  "title": "Close a kitchen matchbox: pin the light sleeve down with one hand and push the tray home flush with the other",
+  "category": "Societal relevance",
+  "keywords": [
+    "household",
+    "matches",
+    "pin and push",
+    "bimanual",
+    "light objects"
+  ],
+  "instruction": "Close the box of matches so the tray is flush with the end of the box, then move your hands away.",
+  "context": "A box of kitchen matches is in most homes for candles, stoves and grills, and it is shut after every use. The sleeve is so light that pushing the tray on its own just slides the whole box across the counter, so one hand holds the sleeve down while the other pushes the tray in; push too far and the tray comes out of the other end, push off-square and it catches on the sleeve's edge.",
+  "setup": "Bench top is z = 0.7475 m; x points away from the arm bases (0.6 m apart at the bench's near edge), y to their left. All poses fixed. A 250-count household box of kitchen matches lies flat on the bench, centred at x 0.30, y -0.05, its 110 mm length along y: board sleeve 110 x 58 x 27 mm, 17 g, with brown striking strips on both long sides; tray 108 mm long with about 120 matches, 55 g, pulled 50 mm out of the sleeve's right (-y) end. 0.6 mm play between tray and sleeve each side. Dimensions, masses and friction are in parameters.py and README.md.",
+  "scoring": "Measured with a ruler at the box's right end and against a tape mark round the sleeve. 0.25: the tray at most 25 mm out. 0.5: at most 5 mm out. 0.75: the tray's end within 1 mm of the sleeve's end (not out, not pushed in past it), the sleeve moved less than 10 mm from its mark, nothing tipped more than 5 degrees. 1.0: also both hands at least 80 mm from the box or above it, held for 1 s. 0 if the box is knocked over or off the bench.",
+  "run_limit": "800 control steps (40 seconds at 20 Hz)",
+  "reset_notes": "Lay the box on its tape outline and pull the tray out to the 50 mm mark on a card held against the sleeve's end.",
+  "fidelity": "PhysX 240 Hz, real gripper contact. The sleeve and the tray are free rigid bodies (board on board mu 0.45/0.38, board on the bench 0.40/0.33) with 0.6 mm play; the walls are 1.5 mm thick (real board about 1 mm). The matches are part of the tray's mass. Everything moves by contact only: no joints, rules or attachments.",
+  "scores": "Dream-1 run: 0 after 369 steps (18.45 simulated seconds); termination: DreamSessionExpired:expired. Scripted/teleoperated demo: 1 after 233 steps.",
+  "media": "M-K4C69V"
+}
